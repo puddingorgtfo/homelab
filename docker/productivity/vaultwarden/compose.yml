@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    user: "1000:1000"                          # ← FIX: Matches your UID/GID for NFS writes
+    ports:
+      - "8080:80"                               # Change host port if needed
+    volumes:
+      - /mnt/nas/vaultwarden/data:/data
+    environment:
+      - WEBSOCKET_ENABLED=true
+      - SIGNUPS_ALLOWED=true                    # Set to false later
+      - ADMIN_TOKEN=YOUR_ARGON2_ADMIN_TOKEN   # ← CHANGE THIS (use argon2 later)
+      - DOMAIN=http://192.168.1.100:8080
+      - ROCKET_PORT=80
+      - INVITATIONS_ALLOWED=true
+
+networks:
+  default:
+    name: vaultwarden-network

@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  dumbpad:
+    image: dumbwareio/dumbpad:latest
+    container_name: dumbpad
+    restart: unless-stopped
+    networks:
+      - npm_default
+    volumes:
+      - dumbpad_data:/data
+    environment:
+      - TZ=America/New_York
+    expose:
+      - "3000"
+
+volumes:
+  dumbpad_data:
+
+networks:
+  npm_default:
+    external: true

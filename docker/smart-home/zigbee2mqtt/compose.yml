@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    networks:
+      - npm_default
+    volumes:
+      - zigbee_mosquitto_data:/mosquitto/data
+      - zigbee_mosquitto_config:/mosquitto/config
+
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt:latest
+    container_name: zigbee2mqtt
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    networks:
+      - npm_default
+    expose:
+      - "8080"
+    volumes:
+      - zigbee_zigbee2mqtt_data:/app/data
+    environment:
+      - TZ=America/New_York
+
+volumes:
+  zigbee_mosquitto_data:
+    external: true
+  zigbee_mosquitto_config:
+    external: true
+  zigbee_zigbee2mqtt_data:
+    external: true
+
+networks:
+  npm_default:
+    external: true

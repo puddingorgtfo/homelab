@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    hostname: pihole
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "8081:80/tcp"  # Changed to 8081 (free port) → container web port 80
+    environment:
+      TZ: "America/New_York"
+      WEBPASSWORD: "CHANGE_ME_PASSWORD"
+      DNSMASQ_LISTENING: local
+    volumes:
+      - 'pihole_etc:/etc/pihole'
+      - 'pihole_dnsmasq:/etc/dnsmasq.d'
+    cap_add:
+      - NET_ADMIN
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+    restart: unless-stopped
+
+volumes:
+  pihole_etc:
+  pihole_dnsmasq:

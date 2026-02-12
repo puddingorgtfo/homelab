@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - /srv/docker/calibre/config:/config
+      - /mnt/nas/books/calibre:/books
+      - /mnt/nas/books/ebooks:/import
+    networks:
+      - npm_default
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true

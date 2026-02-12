@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/New_York
+    volumes:
+      - /srv/docker/radarr/config:/config
+      - /mnt/nas/movies:/movies
+      - /mnt/nas/downloads:/downloads
+    expose:
+      - 7878
+    networks:
+      - npm_default
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true

@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/New_York
+    volumes:
+      - /srv/docker/sonarr/config:/config
+      - "/mnt/nas/Tv Shows:/tv"
+      - /mnt/nas/downloads:/downloads
+    expose:
+      - 8989
+    networks:
+      - npm_default
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true

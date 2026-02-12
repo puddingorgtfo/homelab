@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+
+    ports:
+      - "8096:8096"
+
+    volumes:
+      - /mnt/nas/movies:/media/movies:ro
+      - "/mnt/nas/Tv Shows:/media/tvshows:ro"
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+
+    environment:
+      - TZ=America/New_York
+
+volumes:
+  jellyfin-config:
+  jellyfin-cache:

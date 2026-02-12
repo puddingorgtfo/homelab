@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    environment:
+      TZ: America/New_York
+    volumes:
+      - /srv/docker/audiobookshelf/config:/config
+      - /mnt/nas/books/audiobooks:/audiobooks
+      - /mnt/nas/books/ebooks:/ebooks
+    expose:
+      - 13378
+    networks:
+      - npm_default
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true

@@ -1,0 +1,71 @@
+version: "3.4"
+
+services:
+  broker:
+    image: docker.io/library/redis:7
+    container_name: paperless-redis
+    restart: unless-stopped
+    user: "1000:1000"
+    volumes:
+      - /mnt/nas/paperless/redisdata:/data
+
+  db:
+    image: docker.io/library/postgres:16
+    container_name: paperless-db
+    restart: unless-stopped
+    user: "1000:1000"
+    volumes:
+      - /mnt/nas/paperless/pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: CHANGE_ME_PASSWORD
+      POSTGRES_HOST_AUTH_METHOD: trust
+
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:8
+    container_name: paperless-gotenberg
+    restart: unless-stopped
+    command:
+      - "gotenberg"
+      - "--chromium-disable-routes=pdf-engines"
+
+  webserver:
+    image: docker.io/paperlessngx/paperless-ngx:latest
+    container_name: paperless-web
+    restart: unless-stopped
+    user: "1000:1000"
+    depends_on:
+      - db
+      - broker
+      - gotenberg
+    ports:
+      - "8010:8000"
+    volumes:
+      - /mnt/nas/paperless/data:/usr/src/paperless/data
+      - /mnt/nas/paperless/media:/usr/src/paperless/media
+      - /mnt/nas/paperless/consume:/usr/src/paperless/consume
+      - /mnt/nas/paperless/export:/usr/src/paperless/export
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: CHANGE_ME_PASSWORD
+      PAPERLESS_TIME_ZONE: America/New_York
+      PAPERLESS_OCR_LANGUAGE: eng
+      PAPERLESS_SECRET_KEY: YOUR_SECRET_KEY_AT_LEAST_50_CHARS
+      PAPERLESS_URL: https://paperless.example.com
+      PAPERLESS_CSRF_TRUSTED_ORIGINS: https://paperless.example.com
+      PAPERLESS_ALLOWED_HOSTS: paperless.example.com
+      PAPERLESS_CORS_ALLOWED_HOSTS: https://paperless.example.com
+      PAPERLESS_CONSUMER_POLLING: 180
+      PAPERLESS_UID: 1000
+      PAPERLESS_GID: 1000
+      PAPERLESS_IGNORE_PERMISSION_CHECKS: "true"
+      PAPERLESS_ADMIN_USER: YOUR_USERNAME
+      PAPERLESS_ADMIN_PASSWORD: CHANGE_ME_PASSWORD
+
+networks:
+  default:
+    name: paperless-network

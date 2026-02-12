@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      VPN_SERVICE_PROVIDER: mullvad
+      VPN_TYPE: openvpn
+      OPENVPN_USER: YOUR_VPN_USERNAME
+      OPENVPN_PASSWORD: YOUR_VPN_PASSWORD
+      SERVER_CITIES: Atlanta GA
+      TZ: America/New_York
+      FIREWALL: "on"
+      FIREWALL_INPUT_PORTS: 8080
+    ports:
+      - "6881:6881"
+      - "6881:6881/udp"
+    restart: unless-stopped
+    networks:
+      - npm_default
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/New_York
+      WEBUI_PORT: 8080
+    volumes:
+      - /srv/docker/qbittorrent/config:/config
+      - /mnt/nas/downloads:/downloads
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true

@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: nextcloud-db
+    restart: unless-stopped
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: CHANGE_ME_DB_PASSWORD
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    container_name: nextcloud-redis
+    restart: unless-stopped
+    networks:
+      - internal
+
+  app:
+    image: nextcloud:29
+    container_name: nextcloud-app
+    restart: unless-stopped
+    expose:
+      - "80"
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: CHANGE_ME_DB_PASSWORD
+      REDIS_HOST: redis
+    depends_on:
+      - db
+      - redis
+    networks:
+      - internal
+      - npm_default
+
+volumes:
+  nextcloud:
+  db:
+
+networks:
+  internal:
+    driver: bridge
+  npm_default:
+    external: true

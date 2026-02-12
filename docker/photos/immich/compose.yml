@@ -1,0 +1,99 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    environment:
+      POSTGRES_USER: immich
+      POSTGRES_PASSWORD: CHANGE_ME_IMMICH_DB
+      POSTGRES_DB: immich
+    volumes:
+      - /srv/immich/postgres:/var/lib/postgresql/data
+    networks:
+      - immich_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U immich"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - immich_internal
+    restart: unless-stopped
+
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:release
+    command: ["start.sh", "immich"]
+    environment:
+      TZ: America/New_York
+      IMMICH_PUBLIC_URL: https://photos.example.com
+      DB_HOSTNAME: postgres
+      DB_PORT: "5432"
+      DB_USERNAME: immich
+      DB_PASSWORD: CHANGE_ME_IMMICH_DB
+      DB_DATABASE_NAME: immich
+      REDIS_HOSTNAME: redis
+      REDIS_PORT: "6379"
+      IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
+      UPLOAD_LOCATION: /usr/src/app/upload
+      LOG_LEVEL: log
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - /mnt/nas/immich/upload:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "2283:2283"
+    networks:
+      - immich_internal
+      - npm_default
+    restart: unless-stopped
+
+  immich-microservices:
+    image: ghcr.io/immich-app/immich-server:release
+    command: ["start.sh", "microservices"]
+    environment:
+      TZ: America/New_York
+      IMMICH_PUBLIC_URL: https://photos.example.com
+      DB_HOSTNAME: postgres
+      DB_PORT: "5432"
+      DB_USERNAME: immich
+      DB_PASSWORD: CHANGE_ME_IMMICH_DB
+      DB_DATABASE_NAME: immich
+      REDIS_HOSTNAME: redis
+      REDIS_PORT: "6379"
+      IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
+      UPLOAD_LOCATION: /usr/src/app/upload
+      LOG_LEVEL: log
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - /mnt/nas/immich/upload:/usr/src/app/upload
+    networks:
+      - immich_internal
+    restart: unless-stopped
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    volumes:
+      - /mnt/nas/immich/model-cache:/cache
+    expose:
+      - "3003"
+    networks:
+      - immich_internal
+    restart: unless-stopped
+
+networks:
+  immich_internal:
+    driver: bridge
+  npm_default:
+    external: true
