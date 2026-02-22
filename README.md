@@ -102,3 +102,7 @@ See [proxmox/](proxmox/) for detailed host configuration, VM inventory, storage,
 ## Security Notes
 
 All sensitive values (passwords, API keys, tokens) have been replaced with placeholders. Search for `CHANGE_ME`, `YOUR_`, or `REPLACE` to find values you need to set.
+
+## Repository Structure
+
+This is the **public version** of the homelab configuration. All sensitive data has been removed or replaced with environment variables. If you're looking for the complete setup including encrypted sensitive data, refer to the private repository version, which uses git-crypt for secure storage of credentials.
