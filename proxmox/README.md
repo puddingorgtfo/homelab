@@ -1,19 +1,37 @@
-# Proxmox Setup
+# Proxmox Host
 
 ## Hardware
 
-| Component | Specification | Notes |
-|-----------|---------------|-------|
-| CPU | AMD Ryzen 9 5900X | 12 cores, 24 threads |
-| Memory | 128GB DDR4 | ECC RAM |
-| System Disk | 1TB SSD | RAID 1 |
-| Data Disk | 2TB SSD | VM storage |
-| NAS Storage | 26TB | NFS mount for media and backups |
+| Component | Specification |
+|-----------|--------------|
+| CPU | 2x Intel Xeon E5-2640 v2 @ 2.00GHz (16 cores / 32 threads) |
+| RAM | 128GB DDR3 ECC |
+| Boot Disk | 232GB SSD (LVM: 68GB root + 8GB swap + 137GB LVM-thin) |
+| Data Disk | QNAP NAS via NFS |
+| NAS | QNAP NFS share (~26TB) |
+| GPU | PCIe passthrough to main VM (slot `0000:42:00`) |
 
-## Installation
-Standard Proxmox VE 7 installation.
+## Software
 
-## Storage
-- Primary VM storage uses local SSD
-- Media and large data storage uses the NAS
-- Docker volumes and configurations on NAS
+- **Proxmox VE**: 9.1.4
+- **Kernel**: 6.17.4-2-pve
+- **QEMU/KVM**: 10.1.2
+
+## Network
+
+Single bridge (`vmbr0`) with DHCP, VLAN-aware (VIDs 2-4094). Four physical NICs available (nic0-nic3), nic0 bridged.
+
+See [network.md](network.md) for full interface config.
+
+## VMs & Containers
+
+| VMID | Name | Type | Status | Resources |
+|------|------|------|--------|-----------|
+| 100 | main-ubuntu-desktop | KVM | Running | 6 cores, 32GB RAM, 100GB SSD |
+| 101 | windows11 | KVM | Stopped | 8 cores, 32GB RAM, 500GB |
+| 102 | cachyos | KVM | Stopped | 8 cores, 16GB RAM, 499GB |
+| 103 | windows | KVM | Stopped | 8 cores, 32GB RAM, 500GB |
+| 104 | tailscale-bridge | LXC | Running | 1 core, 512MB RAM, 8GB |
+| 105 | main-ubuntu-desktop (template) | KVM | Template | 6 cores, 16GB RAM, 100GB |
+
+See [vm-inventory.md](vm-inventory.md) for detailed VM configurations.
