@@ -6,10 +6,10 @@ services:
     container_name: wp_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: CHANGE_ME_WP_ROOT_PASSWORD
+      MYSQL_ROOT_PASSWORD: ${WORDPRESS_ROOT_PASSWORD}
       MYSQL_DATABASE: wordpress
       MYSQL_USER: wpuser
-      MYSQL_PASSWORD: CHANGE_ME_WP_PASSWORD
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
     volumes:
       - wp_db_data:/var/lib/mysql
     networks:
@@ -25,14 +25,15 @@ services:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_DB_USER: wpuser
-      WORDPRESS_DB_PASSWORD: CHANGE_ME_WP_PASSWORD
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX:-wp_}
     volumes:
       - wp_data:/var/www/html
     networks:
       - wp_net
       - npm_default
     ports:
-      - "8088:80"
+      - "${WORDPRESS_PORT:-8088}:80"
 
 volumes:
   wp_db_data:

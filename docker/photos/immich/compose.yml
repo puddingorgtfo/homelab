@@ -5,10 +5,10 @@ services:
     image: ankane/pgvector:latest
     environment:
       POSTGRES_USER: immich
-      POSTGRES_PASSWORD: CHANGE_ME_IMMICH_DB
+      POSTGRES_PASSWORD: ${IMMICH_DB_PASSWORD}
       POSTGRES_DB: immich
     volumes:
-      - /srv/immich/postgres:/var/lib/postgresql/data
+      - /mnt/nas/immich/postgres:/var/lib/postgresql/data
     networks:
       - immich_internal
     healthcheck:
@@ -28,18 +28,18 @@ services:
     image: ghcr.io/immich-app/immich-server:release
     command: ["start.sh", "immich"]
     environment:
-      TZ: America/New_York
-      IMMICH_PUBLIC_URL: https://photos.example.com
+      TZ: ${TZ:-America/New_York}
+      IMMICH_PUBLIC_URL: ${IMMICH_PUBLIC_URL}
       DB_HOSTNAME: postgres
       DB_PORT: "5432"
       DB_USERNAME: immich
-      DB_PASSWORD: CHANGE_ME_IMMICH_DB
+      DB_PASSWORD: ${IMMICH_DB_PASSWORD}
       DB_DATABASE_NAME: immich
       REDIS_HOSTNAME: redis
       REDIS_PORT: "6379"
       IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
       UPLOAD_LOCATION: /usr/src/app/upload
-      LOG_LEVEL: log
+      LOG_LEVEL: ${IMMICH_LOG_LEVEL:-log}
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,7 +49,7 @@ services:
       - /mnt/nas/immich/upload:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - "2283:2283"
+      - "${IMMICH_PORT:-2283}:2283"
     networks:
       - immich_internal
       - npm_default
@@ -59,18 +59,18 @@ services:
     image: ghcr.io/immich-app/immich-server:release
     command: ["start.sh", "microservices"]
     environment:
-      TZ: America/New_York
-      IMMICH_PUBLIC_URL: https://photos.example.com
+      TZ: ${TZ:-America/New_York}
+      IMMICH_PUBLIC_URL: ${IMMICH_PUBLIC_URL}
       DB_HOSTNAME: postgres
       DB_PORT: "5432"
       DB_USERNAME: immich
-      DB_PASSWORD: CHANGE_ME_IMMICH_DB
+      DB_PASSWORD: ${IMMICH_DB_PASSWORD}
       DB_DATABASE_NAME: immich
       REDIS_HOSTNAME: redis
       REDIS_PORT: "6379"
       IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
       UPLOAD_LOCATION: /usr/src/app/upload
-      LOG_LEVEL: log
+      LOG_LEVEL: ${IMMICH_LOG_LEVEL:-log}
     depends_on:
       postgres:
         condition: service_healthy

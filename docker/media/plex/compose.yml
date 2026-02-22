@@ -6,17 +6,17 @@ services:
     container_name: plex
     runtime: nvidia
     environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: America/New_York
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/New_York}
       VERSION: docker
-      PLEX_CLAIM: YOUR_PLEX_CLAIM_TOKEN
+      PLEX_CLAIM: ${PLEX_CLAIM}
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
     volumes:
-      - /srv/docker/plex/config:/config
-      - /mnt/nas/movies:/movies
-      - "/mnt/nas/Tv Shows:/tv"
+      - /mnt/nas/docker-configs/plex:/config
+      - ${MOVIES_PATH:-/mnt/nas/movies}:/movies
+      - ${TV_PATH:-/mnt/nas/Tv Shows}:/tv
     expose:
       - 32400
     networks:
