@@ -1,0 +1,24 @@
+services:
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    container_name: speedtest-tracker
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - DB_CONNECTION=sqlite
+      - APP_KEY=${APP_KEY}
+    volumes:
+      - config:/config
+    expose:
+      - "80"
+    networks:
+      - npm_default
+
+volumes:
+  config:
+
+networks:
+  npm_default:
+    external: true

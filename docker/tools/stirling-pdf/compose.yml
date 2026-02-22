@@ -1,0 +1,23 @@
+services:
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    container_name: stirling-pdf
+    restart: unless-stopped
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - LANGS=en_US
+    volumes:
+      - stirling_data:/usr/share/tessdata
+      - stirling_config:/configs
+    expose:
+      - "8080"
+    networks:
+      - npm_default
+
+volumes:
+  stirling_data:
+  stirling_config:
+
+networks:
+  npm_default:
+    external: true

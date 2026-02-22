@@ -1,0 +1,19 @@
+services:
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
+    container_name: seerr
+    environment:
+      - TZ=America/New_York
+      - PORT=5055
+    volumes:
+      - /mnt/nas/docker-configs/overseerr:/app/config
+    expose:
+      - 5055
+    networks:
+      - npm_default
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true

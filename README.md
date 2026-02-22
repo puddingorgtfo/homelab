@@ -7,7 +7,7 @@ Self-hosted services running on Proxmox with Docker containers on an Ubuntu 24.0
 ```
 Proxmox VE 9.1 (2x Xeon E5-2640 v2, 128GB RAM)
 ├── VM 100 - Ubuntu 24.04 (Primary Docker host)
-│   ├── 38+ Docker containers (see Services below)
+│   ├── 45+ Docker containers (see Services below)
 │   ├── Nginx Proxy Manager (reverse proxy + SSL)
 │   ├── Pi-hole (DNS + ad blocking)
 │   ├── Cloudflare Tunnel (external access)
@@ -32,7 +32,7 @@ See [proxmox/](proxmox/) for detailed host configuration, VM inventory, storage,
 | [Sonarr](docker/media/sonarr/) | TV series automation | 8989 |
 | [Radarr](docker/media/radarr/) | Movie automation | 7878 |
 | [Prowlarr](docker/media/prowlarr/) | Indexer manager | 9696 |
-| [Overseerr](docker/media/overseerr/) | Media request management | 5055 |
+| [Seerr](docker/media/seerr/) | Media request management | 5055 |
 | [Readarr](docker/media/readarr/) | E-book automation | 8787 |
 | [Audiobookshelf](docker/media/audiobookshelf/) | Audiobook server | 13378 |
 | [Calibre](docker/media/calibre/) | E-book management | 3000-3001 |
@@ -57,6 +57,8 @@ See [proxmox/](proxmox/) for detailed host configuration, VM inventory, storage,
 | [Paperless-NGX](docker/productivity/paperless-ngx/) | Document management | 8010 |
 | [Vaultwarden](docker/productivity/vaultwarden/) | Password manager (Bitwarden compatible) | 8080 |
 | [WordPress](docker/productivity/wordpress/) | Website / blog | 8088 |
+| [Mealie](docker/productivity/mealie/) | Recipe manager & meal planner | 9000 |
+| [Linkwarden](docker/productivity/linkwarden/) | Bookmark manager | 3000 |
 
 ### Search
 | Service | Description | Port |
@@ -76,8 +78,16 @@ See [proxmox/](proxmox/) for detailed host configuration, VM inventory, storage,
 | Service | Description | Port |
 |---------|-------------|------|
 | [n8n](docker/tools/n8n/) | Workflow automation | 5678 |
+| [Stirling PDF](docker/tools/stirling-pdf/) | PDF manipulation & conversion | 8080 |
+| [IT Tools](docker/tools/it-tools/) | Developer utilities collection | 80 |
 | [FlareSolverr](docker/tools/flaresolverr/) | Cloudflare challenge solver | 8191 |
 | [Dumbpad](docker/tools/dumbpad/) | Simple notepad | 3000 |
+
+### Monitoring
+| Service | Description | Port |
+|---------|-------------|------|
+| [Uptime Kuma](docker/monitoring/uptime-kuma/) | Service uptime monitoring | 3001 |
+| [Speedtest Tracker](docker/monitoring/speedtest-tracker/) | Network speed history & graphs | 80 |
 
 ## Storage
 
