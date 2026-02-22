@@ -4,9 +4,9 @@
 
 | VLAN ID | Purpose | Subnet | Notes |
 |---------|---------|--------|-------|
-| 1 | Management | 192.168.1.0/24 | Proxmox host, infrastructure |
-| 10 | Services | 192.168.10.0/24 | VMs, Docker services |
-| 20 | IoT | 192.168.20.0/24 | Smart home devices |
+| 1 | Management | YOUR_MGMT_SUBNET/24 | Proxmox host, infrastructure |
+| 10 | Services | YOUR_SERVICES_SUBNET/24 | VMs, Docker services |
+| 20 | IoT | YOUR_IOT_SUBNET/24 | Smart home devices |
 
 ## NFS Shares
 
@@ -18,5 +18,4 @@ The following NFS shares are available:
 
 ## Storage Access
 
-All critical services access the NAS storage via the NFS mounts. The original NVMe storage paths
-have been migrated to the NAS for reliability and redundancy.
+All critical services access the NAS storage via the NFS mounts.

@@ -27,7 +27,7 @@ Proxmox VE 9.1 (2x Xeon E5-2640 v2, 128GB RAM)
 └── Storage: 232GB SSD boot + 26TB NAS
 ```
 
-**Note:** The 3.6TB NVMe died in a power surge (Jan 2026). VMs 101-103 had boot disks on it and are unrecoverable without reinstall. All Docker configs were recovered and migrated to NAS.
+**Note:** VMs 101-103 are currently stopped and require disk reinstall.
 
 ## Services
 

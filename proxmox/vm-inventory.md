@@ -8,6 +8,3 @@
 
 ## Backup Schedule
 All VMs are backed up to NAS storage weekly.
-
-## Note
-The original NVMe storage (nvme-data) was lost due to hardware failure. All data has been migrated to NAS storage with backups.
