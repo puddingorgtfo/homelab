@@ -12,7 +12,7 @@ services:
       DB_MYSQL_HOST: "db"
       DB_MYSQL_PORT: 3306
       DB_MYSQL_USER: "npm"
-      DB_MYSQL_PASSWORD: "CHANGE_ME_PASSWORD"
+      DB_MYSQL_PASSWORD: ${NPM_DB_PASSWORD}
       DB_MYSQL_NAME: "npm"
     volumes:
       - npm-data:/data
@@ -24,10 +24,10 @@ services:
     image: 'mysql:8.0'
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 'CHANGE_ME_PASSWORD'
+      MYSQL_ROOT_PASSWORD: ${NPM_ROOT_PASSWORD}
       MYSQL_DATABASE: 'npm'
       MYSQL_USER: 'npm'
-      MYSQL_PASSWORD: 'CHANGE_ME_PASSWORD'
+      MYSQL_PASSWORD: ${NPM_DB_PASSWORD}
     volumes:
       - npm-db:/var/lib/mysql
 

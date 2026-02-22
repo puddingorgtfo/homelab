@@ -1,0 +1,91 @@
+# Homelab Infrastructure Repository .gitignore
+
+# Environment variables and secrets
+.env
+*.env
+!.env.example
+!*.env.example
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+.credentials
+secrets/
+credentials/
+
+# Docker
+docker-compose.override.yml
+docker-compose.override.yaml
+docker/*/data/
+volumes/
+
+# Proxmox
+proxmox/dumps/
+proxmox/images/
+proxmox/private/
+*.backup
+*.bak
+
+# Network configuration backups
+network/backups/
+routers/
+switches/
+firewalls/
+*.conf.backup
+
+# Config files
+config.yml
+config.yaml
+config.json
+config.toml
+!*.example.yml
+!*.example.yaml
+!*.example.json
+!*.example.toml
+!*.template.*
+
+# Authentication files
+.htpasswd
+auth.json
+tokens/
+jwt/
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+tmp/
+temp/
+
+# Database dumps and files
+*.sql
+*.sqlite
+*.db
+*dump.gz
+*dump.zip
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Cloud-related
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+.terraformrc
+terraform.rc
