@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: linkwarden-db
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: linkwarden
+      POSTGRES_USER: linkwarden
+      POSTGRES_PASSWORD: ${LINKWARDEN_DB_PASSWORD}
+    networks:
+      - internal
+
+  app:
+    image: ghcr.io/linkwarden/linkwarden:latest
+    container_name: linkwarden
+    restart: unless-stopped
+    expose:
+      - "3000"
+    depends_on:
+      - db
+    volumes:
+      - ${MEDIA_PATH}/linkwarden/data:/data/data
+    environment:
+      DATABASE_URL: postgresql://linkwarden:${LINKWARDEN_DB_PASSWORD}@db:5432/linkwarden
+      NEXTAUTH_SECRET: ${LINKWARDEN_SECRET}
+      NEXTAUTH_URL: ${LINKWARDEN_URL}
+    networks:
+      - internal
+      - npm_default
+
+volumes:
+  pgdata:
+
+networks:
+  internal:
+    driver: bridge
+  npm_default:
+    external: true
