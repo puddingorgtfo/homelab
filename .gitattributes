@@ -1,6 +1,3 @@
-*.env filter=git-crypt diff=git-crypt
-*.key filter=git-crypt diff=git-crypt
-*.conf filter=git-crypt diff=git-crypt
-sensetive_* filter=git-crypt diff=git-crypt
-**/sensitive/** filter=git-crypt diff=git-crypt
+# This is the public repository version
+# No encryption is used, sensitive data is removed or redacted
 .gitattributes !filter !diff
