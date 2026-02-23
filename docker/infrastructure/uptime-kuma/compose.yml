@@ -1,0 +1,18 @@
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - data:/app/data
+    expose:
+      - "3001"
+    networks:
+      - npm_default
+
+volumes:
+  data:
+
+networks:
+  npm_default:
+    external: true

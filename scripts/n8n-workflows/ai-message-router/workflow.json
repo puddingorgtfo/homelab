@@ -1,0 +1,1042 @@
+{
+  "updatedAt": "2026-01-28T01:07:42.228Z",
+  "createdAt": "2026-01-24T19:20:32.489Z",
+  "id": "LBKzIaYNFAgLDP6N",
+  "name": "AI Message Router",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-001",
+      "name": "When called by interface",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        112,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "value": "jZ26iaV1hcAJTmiq",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "node-002",
+      "name": "Get Conversation History",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        304,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {}
+      },
+      "id": "node-003",
+      "name": "OpenRouter LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        512,
+        112
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "R2ksnRxBZmm9uvgK",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "node-004",
+      "name": "Session Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message_text }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "={{ 'You are a personal assistant via messaging apps.\n\nTODAY: ' + $now.setZone('America/New_York').toFormat('cccc, LLLL d, yyyy') + '\nTIME: ' + $now.setZone('America/New_York').toFormat('h:mm a') + ' Eastern\n\nDATE REFERENCE (USE THESE EXACT DATES):\n- Today: ' + $now.setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- Tomorrow: ' + $now.plus({days: 1}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 2}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 2}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 3}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 3}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 4}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 4}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 5}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 5}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 6}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 6}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n\nTOOLS:\n- schedule_calendar_event: Create new event\n- get_calendar_events: Check availability or list events\n- find_calendar_event: Find event by title (returns event_id)\n- update_calendar_event: Reschedule/modify event (needs event_id)\n- delete_calendar_event: Cancel event (needs event_id)\n\n⚠️ CRITICAL DATE RULES - READ CAREFULLY:\n1. ALWAYS use dates from the DATE REFERENCE above\n2. Format: YYYY-MM-DDTHH:MM:SS (example: ' + $now.plus({days: 1}).setZone('America/New_York').toFormat('yyyy-MM-dd') + 'T15:00:00)\n3. NEVER use {{ }}, $now, or ANY template/code syntax\n4. If you output {{ or $now, THE REQUEST WILL FAIL\n\nEXAMPLES:\n- \"tomorrow at 3pm\" → start_time: ' + $now.plus({days: 1}).setZone('America/New_York').toFormat('yyyy-MM-dd') + 'T15:00:00\n- \"Friday at 10am\" → Look up Friday in DATE REFERENCE, use that date + T10:00:00\n\nFOR RESCHEDULING:\n1. First use find_calendar_event to get the event_id\n2. Then use update_calendar_event with that event_id\n\nFOR CANCELING:\n1. First use find_calendar_event to get the event_id\n2. Then use delete_calendar_event with that event_id\n\nWhen confirming to user, say the actual date like \"January 29, 2026\" - never show code.' }}",
+          "maxIterations": 10,
+          "returnIntermediateSteps": false,
+          "enableStreaming": false
+        }
+      },
+      "id": "node-005",
+      "name": "AI Personal Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        704,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Send emails immediately to recipients. Required parameters: to (email address), subject (email subject line), message (email body content). Use this when user wants to send an email right away without review.",
+        "workflowId": {
+          "value": "fbfzBFXzHwQzcKrw",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "send",
+            "to": "={{ $parameter.to }}",
+            "subject": "={{ $parameter.subject }}",
+            "message": "={{ $parameter.message }}"
+          }
+        }
+      },
+      "id": "node-006",
+      "name": "Send Email Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Create email drafts for user review before sending. Required parameters: subject (email subject line), message (email body content). Use this when user wants to review the email first or says 'draft' or 'review before sending'.",
+        "workflowId": {
+          "value": "fbfzBFXzHwQzcKrw",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "draft",
+            "subject": "={{ $parameter.subject }}",
+            "message": "={{ $parameter.message }}"
+          }
+        }
+      },
+      "id": "node-007",
+      "name": "Draft Email Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Check calendar availability for a specific time range. Required parameters: start_time (ISO 8601 format datetime), end_time (ISO 8601 format datetime). Use this to check if user is free at a certain time.",
+        "workflowId": {
+          "value": "nEH1yjfFeIJBazA2",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "check_availability",
+            "start_time": "={{ $fromAI('start_time', 'ISO 8601 datetime for range start', 'string') }}",
+            "end_time": "={{ $fromAI('end_time', 'ISO 8601 datetime for range end', 'string') }}"
+          }
+        },
+        "name": "get_calendar_events"
+      },
+      "id": "node-008",
+      "name": "Check Calendar Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Schedule a new calendar event. You MUST provide:\n- event_title: Event name/summary (e.g., 'Team Meeting'). REQUIRED.\n- start_time: ISO 8601 datetime (e.g., '2026-01-26T15:00:00-05:00'). REQUIRED.\n- end_time: ISO 8601 datetime. REQUIRED. Default to 1 hour after start if not specified.\n- event_description: Optional details.\nUse America/New_York timezone (-05:00 for EST).",
+        "workflowId": {
+          "value": "nEH1yjfFeIJBazA2",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "create_event",
+            "start_time": "={{ $fromAI('start_time', 'ISO 8601 datetime with timezone for event start', 'string') }}",
+            "end_time": "={{ $fromAI('end_time', 'ISO 8601 datetime with timezone for event end', 'string') }}",
+            "event_title": "={{ $fromAI('event_title', 'The name or title of the calendar event', 'string') }}",
+            "event_description": "={{ $fromAI('event_description', 'Optional description', 'string') || '' }}"
+          }
+        },
+        "name": "schedule_calendar_event"
+      },
+      "id": "node-009",
+      "name": "Create Event Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "value": "jZ26iaV1hcAJTmiq",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "node-010",
+      "name": "Update Conversation History",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        912,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "response_text",
+              "name": "response_text",
+              "value": "={{ $('AI Personal Assistant').item.json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "memory_updated",
+              "name": "memory_updated",
+              "value": "={{ $('Update Conversation History').item.json.success || true }}",
+              "type": "boolean"
+            },
+            {
+              "id": "services_called",
+              "name": "services_called",
+              "value": "={{ $('AI Personal Assistant').item.json.tools_used || [] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-011",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "name": "update_calendar_event",
+        "description": "Update/reschedule an existing calendar event. You MUST provide:\n- event_id: The ID of the event to update (from previous get_calendar_events or schedule_calendar_event response). REQUIRED.\n- new_start_time: New ISO 8601 datetime (e.g., '2026-01-28T10:00:00'). REQUIRED.\n- new_end_time: New ISO 8601 datetime. REQUIRED.\n- new_title: Optional new title for the event.",
+        "workflowId": {
+          "value": "nEH1yjfFeIJBazA2",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "update_event",
+            "event_id": "={{ $fromAI('event_id', 'The ID of the event to update', 'string') }}",
+            "start_time": "={{ $fromAI('new_start_time', 'New ISO 8601 datetime for event start', 'string') }}",
+            "end_time": "={{ $fromAI('new_end_time', 'New ISO 8601 datetime for event end', 'string') }}",
+            "event_title": "={{ $fromAI('new_title', 'Optional new title for the event', 'string') || '' }}"
+          }
+        }
+      },
+      "id": "node-012",
+      "name": "Update Event Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "name": "delete_calendar_event",
+        "description": "Delete/cancel a calendar event. You MUST provide:\n- event_id: The ID of the event to delete (from previous get_calendar_events or schedule_calendar_event response). REQUIRED.",
+        "workflowId": {
+          "value": "nEH1yjfFeIJBazA2",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "delete_event",
+            "event_id": "={{ $fromAI('event_id', 'The ID of the event to delete', 'string') }}"
+          }
+        }
+      },
+      "id": "node-013",
+      "name": "Delete Event Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "name": "find_calendar_event",
+        "description": "Find calendar events by title. Returns event_id(s) needed for update/delete operations.\n- event_title: The title or partial title to search for. REQUIRED.",
+        "workflowId": {
+          "value": "nEH1yjfFeIJBazA2",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "find_event",
+            "event_title": "={{ $fromAI('event_title', 'The title or partial title of the event to find', 'string') }}"
+          }
+        }
+      },
+      "id": "node-014",
+      "name": "Find Event Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        944
+      ]
+    }
+  ],
+  "connections": {
+    "When called by interface": {
+      "main": [
+        [
+          {
+            "node": "Get Conversation History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Conversation History": {
+      "main": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Email Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Calendar Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Personal Assistant": {
+      "main": [
+        [
+          {
+            "node": "Update Conversation History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "ai_tool": []
+    },
+    "Update Conversation History": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Event Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Event Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Event Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "3ba9c236-3286-4231-bce2-62f44f07c81c",
+  "activeVersionId": "3ba9c236-3286-4231-bce2-62f44f07c81c",
+  "versionCounter": 33,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-24T19:20:32.491Z",
+      "createdAt": "2026-01-24T19:20:32.491Z",
+      "role": "workflow:owner",
+      "workflowId": "LBKzIaYNFAgLDP6N",
+      "projectId": "VIGmUhLafQNWg530",
+      "project": {
+        "updatedAt": "2025-11-16T22:23:45.853Z",
+        "createdAt": "2025-11-16T22:20:53.225Z",
+        "id": "VIGmUhLafQNWg530",
+        "name": "Your Name <your-email@example.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "a27f9999-3e10-421a-bea1-c7c0e18977ce",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-11-16T22:20:53.225Z",
+            "createdAt": "2025-11-16T22:20:53.225Z",
+            "userId": "a27f9999-3e10-421a-bea1-c7c0e18977ce",
+            "projectId": "VIGmUhLafQNWg530",
+            "user": {
+              "updatedAt": "2026-02-07T17:06:25.000Z",
+              "createdAt": "2025-11-16T22:20:49.278Z",
+              "id": "a27f9999-3e10-421a-bea1-c7c0e18977ce",
+              "email": "your-email@example.com",
+              "firstName": "YourFirstName",
+              "lastName": "YourLastName",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-11-16T22:24:51.337Z",
+                "personalization_survey_n8n_version": "1.119.2",
+                "companyType": "systems-integrator",
+                "automationGoalSm": [
+                  "customer-communication",
+                  "lead-generation"
+                ],
+                "role": "sales-and-marketing"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "bhFG466bTOPC36Qv",
+                "userActivatedAt": 1764484168167,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769874474480
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-07",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-28T01:07:42.229Z",
+    "createdAt": "2026-01-28T01:07:42.229Z",
+    "versionId": "3ba9c236-3286-4231-bce2-62f44f07c81c",
+    "workflowId": "LBKzIaYNFAgLDP6N",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "node-001",
+        "name": "When called by interface",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1,
+        "position": [
+          112,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "value": "jZ26iaV1hcAJTmiq",
+            "mode": "id"
+          },
+          "options": {
+            "waitForSubWorkflow": true
+          }
+        },
+        "id": "node-002",
+        "name": "Get Conversation History",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [
+          304,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "model": "openai/gpt-4o-mini",
+          "options": {}
+        },
+        "id": "node-003",
+        "name": "OpenRouter LLM",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          512,
+          112
+        ],
+        "credentials": {
+          "openRouterApi": {
+            "id": "R2ksnRxBZmm9uvgK",
+            "name": "OpenRouter account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "id": "node-004",
+        "name": "Session Memory",
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1.2,
+        "position": [
+          512,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.message_text }}",
+          "hasOutputParser": false,
+          "options": {
+            "systemMessage": "={{ 'You are a personal assistant via messaging apps.\n\nTODAY: ' + $now.setZone('America/New_York').toFormat('cccc, LLLL d, yyyy') + '\nTIME: ' + $now.setZone('America/New_York').toFormat('h:mm a') + ' Eastern\n\nDATE REFERENCE (USE THESE EXACT DATES):\n- Today: ' + $now.setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- Tomorrow: ' + $now.plus({days: 1}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 2}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 2}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 3}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 3}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 4}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 4}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 5}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 5}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n- ' + $now.plus({days: 6}).setZone('America/New_York').toFormat('cccc') + ': ' + $now.plus({days: 6}).setZone('America/New_York').toFormat('yyyy-MM-dd') + '\n\nTOOLS:\n- schedule_calendar_event: Create new event\n- get_calendar_events: Check availability or list events\n- find_calendar_event: Find event by title (returns event_id)\n- update_calendar_event: Reschedule/modify event (needs event_id)\n- delete_calendar_event: Cancel event (needs event_id)\n\n⚠️ CRITICAL DATE RULES - READ CAREFULLY:\n1. ALWAYS use dates from the DATE REFERENCE above\n2. Format: YYYY-MM-DDTHH:MM:SS (example: ' + $now.plus({days: 1}).setZone('America/New_York').toFormat('yyyy-MM-dd') + 'T15:00:00)\n3. NEVER use {{ }}, $now, or ANY template/code syntax\n4. If you output {{ or $now, THE REQUEST WILL FAIL\n\nEXAMPLES:\n- \"tomorrow at 3pm\" → start_time: ' + $now.plus({days: 1}).setZone('America/New_York').toFormat('yyyy-MM-dd') + 'T15:00:00\n- \"Friday at 10am\" → Look up Friday in DATE REFERENCE, use that date + T10:00:00\n\nFOR RESCHEDULING:\n1. First use find_calendar_event to get the event_id\n2. Then use update_calendar_event with that event_id\n\nFOR CANCELING:\n1. First use find_calendar_event to get the event_id\n2. Then use delete_calendar_event with that event_id\n\nWhen confirming to user, say the actual date like \"January 29, 2026\" - never show code.' }}",
+            "maxIterations": 10,
+            "returnIntermediateSteps": false,
+            "enableStreaming": false
+          }
+        },
+        "id": "node-005",
+        "name": "AI Personal Assistant",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          704,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "description": "Send emails immediately to recipients. Required parameters: to (email address), subject (email subject line), message (email body content). Use this when user wants to send an email right away without review.",
+          "workflowId": {
+            "value": "fbfzBFXzHwQzcKrw",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "action": "send",
+              "to": "={{ $parameter.to }}",
+              "subject": "={{ $parameter.subject }}",
+              "message": "={{ $parameter.message }}"
+            }
+          }
+        },
+        "id": "node-006",
+        "name": "Send Email Tool",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "description": "Create email drafts for user review before sending. Required parameters: subject (email subject line), message (email body content). Use this when user wants to review the email first or says 'draft' or 'review before sending'.",
+          "workflowId": {
+            "value": "fbfzBFXzHwQzcKrw",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "action": "draft",
+              "subject": "={{ $parameter.subject }}",
+              "message": "={{ $parameter.message }}"
+            }
+          }
+        },
+        "id": "node-007",
+        "name": "Draft Email Tool",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "description": "Check calendar availability for a specific time range. Required parameters: start_time (ISO 8601 format datetime), end_time (ISO 8601 format datetime). Use this to check if user is free at a certain time.",
+          "workflowId": {
+            "value": "nEH1yjfFeIJBazA2",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "action": "check_availability",
+              "start_time": "={{ $fromAI('start_time', 'ISO 8601 datetime for range start', 'string') }}",
+              "end_time": "={{ $fromAI('end_time', 'ISO 8601 datetime for range end', 'string') }}"
+            }
+          },
+          "name": "get_calendar_events"
+        },
+        "id": "node-008",
+        "name": "Check Calendar Tool",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          608
+        ]
+      },
+      {
+        "parameters": {
+          "description": "Schedule a new calendar event. You MUST provide:\n- event_title: Event name/summary (e.g., 'Team Meeting'). REQUIRED.\n- start_time: ISO 8601 datetime (e.g., '2026-01-26T15:00:00-05:00'). REQUIRED.\n- end_time: ISO 8601 datetime. REQUIRED. Default to 1 hour after start if not specified.\n- event_description: Optional details.\nUse America/New_York timezone (-05:00 for EST).",
+          "workflowId": {
+            "value": "nEH1yjfFeIJBazA2",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "action": "create_event",
+              "start_time": "={{ $fromAI('start_time', 'ISO 8601 datetime with timezone for event start', 'string') }}",
+              "end_time": "={{ $fromAI('end_time', 'ISO 8601 datetime with timezone for event end', 'string') }}",
+              "event_title": "={{ $fromAI('event_title', 'The name or title of the calendar event', 'string') }}",
+              "event_description": "={{ $fromAI('event_description', 'Optional description', 'string') || '' }}"
+            }
+          },
+          "name": "schedule_calendar_event"
+        },
+        "id": "node-009",
+        "name": "Create Event Tool",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          704
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "value": "jZ26iaV1hcAJTmiq",
+            "mode": "id"
+          },
+          "options": {
+            "waitForSubWorkflow": true
+          }
+        },
+        "id": "node-010",
+        "name": "Update Conversation History",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [
+          912,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "response_text",
+                "name": "response_text",
+                "value": "={{ $('AI Personal Assistant').item.json.output }}",
+                "type": "string"
+              },
+              {
+                "id": "memory_updated",
+                "name": "memory_updated",
+                "value": "={{ $('Update Conversation History').item.json.success || true }}",
+                "type": "boolean"
+              },
+              {
+                "id": "services_called",
+                "name": "services_called",
+                "value": "={{ $('AI Personal Assistant').item.json.tools_used || [] }}",
+                "type": "array"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "node-011",
+        "name": "Format Response",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1104,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "name": "update_calendar_event",
+          "description": "Update/reschedule an existing calendar event. You MUST provide:\n- event_id: The ID of the event to update (from previous get_calendar_events or schedule_calendar_event response). REQUIRED.\n- new_start_time: New ISO 8601 datetime (e.g., '2026-01-28T10:00:00'). REQUIRED.\n- new_end_time: New ISO 8601 datetime. REQUIRED.\n- new_title: Optional new title for the event.",
+          "workflowId": {
+            "value": "nEH1yjfFeIJBazA2",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "action": "update_event",
+              "event_id": "={{ $fromAI('event_id', 'The ID of the event to update', 'string') }}",
+              "start_time": "={{ $fromAI('new_start_time', 'New ISO 8601 datetime for event start', 'string') }}",
+              "end_time": "={{ $fromAI('new_end_time', 'New ISO 8601 datetime for event end', 'string') }}",
+              "event_title": "={{ $fromAI('new_title', 'Optional new title for the event', 'string') || '' }}"
+            }
+          }
+        },
+        "id": "node-012",
+        "name": "Update Event Tool",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          784
+        ]
+      },
+      {
+        "parameters": {
+          "name": "delete_calendar_event",
+          "description": "Delete/cancel a calendar event. You MUST provide:\n- event_id: The ID of the event to delete (from previous get_calendar_events or schedule_calendar_event response). REQUIRED.",
+          "workflowId": {
+            "value": "nEH1yjfFeIJBazA2",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "action": "delete_event",
+              "event_id": "={{ $fromAI('event_id', 'The ID of the event to delete', 'string') }}"
+            }
+          }
+        },
+        "id": "node-013",
+        "name": "Delete Event Tool",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          864
+        ]
+      },
+      {
+        "parameters": {
+          "name": "find_calendar_event",
+          "description": "Find calendar events by title. Returns event_id(s) needed for update/delete operations.\n- event_title: The title or partial title to search for. REQUIRED.",
+          "workflowId": {
+            "value": "nEH1yjfFeIJBazA2",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "action": "find_event",
+              "event_title": "={{ $fromAI('event_title', 'The title or partial title of the event to find', 'string') }}"
+            }
+          }
+        },
+        "id": "node-014",
+        "name": "Find Event Tool",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          944
+        ]
+      }
+    ],
+    "connections": {
+      "When called by interface": {
+        "main": [
+          [
+            {
+              "node": "Get Conversation History",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Conversation History": {
+        "main": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter LLM": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Session Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Email Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Draft Email Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Calendar Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Event Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Personal Assistant": {
+        "main": [
+          [
+            {
+              "node": "Update Conversation History",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ],
+        "ai_tool": []
+      },
+      "Update Conversation History": {
+        "main": [
+          [
+            {
+              "node": "Format Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Event Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Delete Event Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Find Event Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Personal Assistant",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Your Name",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-01-28T01:07:42.277Z",
+        "id": 71,
+        "workflowId": "LBKzIaYNFAgLDP6N",
+        "versionId": "3ba9c236-3286-4231-bce2-62f44f07c81c",
+        "event": "activated",
+        "userId": "a27f9999-3e10-421a-bea1-c7c0e18977ce"
+      }
+    ]
+  }
+}

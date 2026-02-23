@@ -1,0 +1,18 @@
+# /etc/fstab: static file system information.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+# / was on /dev/sda2 during curtin installation
+
+# NVMe mount removed - drive died in power surge Jan 2026
+# UUID=f92a1abd-7e4f-4ddb-9713-cebf5a54ae37  /mnt/nvme  ext4  defaults,noatime  0  2
+/dev/disk/by-uuid/2d6d985f-951e-4b8a-b680-6f95a4cb2885 / ext4 defaults 0 1
+/swap.img	none	swap	sw	0	0
+
+<NAS_IP>:/<NAS_EXPORT> /mnt/nas nfs defaults,rw,nolock,soft,timeo=600 0 0
+<NAS_IP>:/share/paperless/data       /mnt/nas/paperless/data       nfs defaults,noatime,rw 0 0
+<NAS_IP>:/share/paperless/media      /mnt/nas/paperless/media      nfs defaults,noatime,rw 0 0
+<NAS_IP>:/share/paperless/consume    /mnt/nas/paperless/consume    nfs defaults,noatime,rw 0 0
+<NAS_IP>:/share/paperless/export     /mnt/nas/paperless/export     nfs defaults,noatime,rw 0 0
+<NAS_IP>:/share/paperless/pgdata     /mnt/nas/paperless/pgdata     nfs defaults,noatime,rw 0 0
+<NAS_IP>:/share/paperless/redisdata  /mnt/nas/paperless/redisdata  nfs defaults,noatime,rw 0 0
+/swapfile none swap sw 0 0

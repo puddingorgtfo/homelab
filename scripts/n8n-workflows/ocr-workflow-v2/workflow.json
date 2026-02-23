@@ -1,0 +1,448 @@
+{
+  "updatedAt": "2025-12-04T05:37:29.796Z",
+  "createdAt": "2025-12-04T05:37:29.796Z",
+  "id": "fAzPpv702TpgeMzD",
+  "name": "OCR (Dec 3 at 23:40:51)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/files",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "purpose",
+              "value": "ocr"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "File"
+            },
+            {
+              "name": "file2",
+              "value": "_1"
+            },
+            {
+              "name": "file3",
+              "value": "_2"
+            },
+            {
+              "name": "file4",
+              "value": "_3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1600,
+        -336
+      ],
+      "id": "6a6fb726-c319-4c7f-903b-62410f745d20",
+      "name": "upload to Mistral1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PzYaBZekt41qtMqt",
+          "name": "Mistral OCR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mistral.ai/v1/files/{{ $json.id }}/url",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1376,
+        -336
+      ],
+      "id": "72af0202-ddbb-42ad-8524-870866891606",
+      "name": "Get URL1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PzYaBZekt41qtMqt",
+          "name": "Mistral OCR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/ocr",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"type\": \"document_url\",\n    \"document_url\": \"{{ $json.url }}\"\n  },\n  \"include_image_base64\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1152,
+        -336
+      ],
+      "id": "d74574a8-342e-4787-afcc-b18bfffa75dc",
+      "name": "Results1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PzYaBZekt41qtMqt",
+          "name": "Mistral OCR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"target_pages\": \"all\",\n  \"result_type\": \"markdown\",\n  \"page_separator\": \"\\n\\n---\\n\\n\",\n  \"parsing_instruction\": \"Extract the complete text, tables, and structure from every page of this insurance policy PDF. Output clean markdown for each page individually. Include all tables as markdown grids. Do not summarize, skip, or truncate any content. Process all pages fully.\"\n}",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -944,
+        -336
+      ],
+      "id": "94743217-0b1a-4cd1-ae32-f03d2532ca97",
+      "name": "Return"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "5967eb15-2ce2-4649-b199-097cc110ecc9",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -1952,
+        -304
+      ]
+    }
+  ],
+  "connections": {
+    "upload to Mistral1": {
+      "main": [
+        [
+          {
+            "node": "Get URL1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get URL1": {
+      "main": [
+        [
+          {
+            "node": "Results1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "upload to Mistral1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Results1": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": null,
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "bf8f08f7-23bb-409b-a4f7-220dd8dda363",
+  "activeVersionId": "bf8f08f7-23bb-409b-a4f7-220dd8dda363",
+  "versionCounter": 11,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-12-04T05:37:29.799Z",
+      "createdAt": "2025-12-04T05:37:29.799Z",
+      "role": "workflow:owner",
+      "workflowId": "fAzPpv702TpgeMzD",
+      "projectId": "VIGmUhLafQNWg530",
+      "project": {
+        "updatedAt": "2025-11-16T22:23:45.853Z",
+        "createdAt": "2025-11-16T22:20:53.225Z",
+        "id": "VIGmUhLafQNWg530",
+        "name": "Your Name <your-email@example.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "a27f9999-3e10-421a-bea1-c7c0e18977ce",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-11-16T22:20:53.225Z",
+            "createdAt": "2025-11-16T22:20:53.225Z",
+            "userId": "a27f9999-3e10-421a-bea1-c7c0e18977ce",
+            "projectId": "VIGmUhLafQNWg530",
+            "user": {
+              "updatedAt": "2026-02-07T17:06:25.000Z",
+              "createdAt": "2025-11-16T22:20:49.278Z",
+              "id": "a27f9999-3e10-421a-bea1-c7c0e18977ce",
+              "email": "your-email@example.com",
+              "firstName": "YourFirstName",
+              "lastName": "YourLastName",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-11-16T22:24:51.337Z",
+                "personalization_survey_n8n_version": "1.119.2",
+                "companyType": "systems-integrator",
+                "automationGoalSm": [
+                  "customer-communication",
+                  "lead-generation"
+                ],
+                "role": "sales-and-marketing"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "bhFG466bTOPC36Qv",
+                "userActivatedAt": 1764484168167,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769874474480
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-07",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2025-12-04T05:37:29.800Z",
+    "createdAt": "2025-12-04T05:37:29.800Z",
+    "versionId": "bf8f08f7-23bb-409b-a4f7-220dd8dda363",
+    "workflowId": "fAzPpv702TpgeMzD",
+    "nodes": [
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.mistral.ai/v1/files",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "contentType": "multipart-form-data",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "purpose",
+                "value": "ocr"
+              },
+              {
+                "parameterType": "formBinaryData",
+                "name": "file",
+                "inputDataFieldName": "File"
+              },
+              {
+                "name": "file2",
+                "value": "_1"
+              },
+              {
+                "name": "file3",
+                "value": "_2"
+              },
+              {
+                "name": "file4",
+                "value": "_3"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1600,
+          -336
+        ],
+        "id": "6a6fb726-c319-4c7f-903b-62410f745d20",
+        "name": "upload to Mistral1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "PzYaBZekt41qtMqt",
+            "name": "Mistral OCR"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "=https://api.mistral.ai/v1/files/{{ $json.id }}/url",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1376,
+          -336
+        ],
+        "id": "72af0202-ddbb-42ad-8524-870866891606",
+        "name": "Get URL1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "PzYaBZekt41qtMqt",
+            "name": "Mistral OCR"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.mistral.ai/v1/ocr",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"type\": \"document_url\",\n    \"document_url\": \"{{ $json.url }}\"\n  },\n  \"include_image_base64\": true\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1152,
+          -336
+        ],
+        "id": "d74574a8-342e-4787-afcc-b18bfffa75dc",
+        "name": "Results1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "PzYaBZekt41qtMqt",
+            "name": "Mistral OCR"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "raw",
+          "jsonOutput": "={\n  \"target_pages\": \"all\",\n  \"result_type\": \"markdown\",\n  \"page_separator\": \"\\n\\n---\\n\\n\",\n  \"parsing_instruction\": \"Extract the complete text, tables, and structure from every page of this insurance policy PDF. Output clean markdown for each page individually. Include all tables as markdown grids. Do not summarize, skip, or truncate any content. Process all pages fully.\"\n}",
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -944,
+          -336
+        ],
+        "id": "94743217-0b1a-4cd1-ae32-f03d2532ca97",
+        "name": "Return"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "5967eb15-2ce2-4649-b199-097cc110ecc9",
+        "typeVersion": 1.1,
+        "name": "Start",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "position": [
+          -1952,
+          -304
+        ]
+      }
+    ],
+    "connections": {
+      "upload to Mistral1": {
+        "main": [
+          [
+            {
+              "node": "Get URL1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get URL1": {
+        "main": [
+          [
+            {
+              "node": "Results1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Start": {
+        "main": [
+          [
+            {
+              "node": "upload to Mistral1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Results1": {
+        "main": [
+          [
+            {
+              "node": "Return",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Your Name",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2025-12-04T05:37:29.796Z",
+        "id": 2,
+        "workflowId": "fAzPpv702TpgeMzD",
+        "versionId": "bf8f08f7-23bb-409b-a4f7-220dd8dda363",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}

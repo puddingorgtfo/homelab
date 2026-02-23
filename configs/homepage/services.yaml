@@ -1,0 +1,110 @@
+---
+- Infrastructure:
+    - Portainer:
+        icon: portainer
+        href: https://portainer.yourdomain.com
+        description: Docker container management
+    - Nginx Proxy Manager:
+        icon: nginx
+        href: https://npm.yourdomain.com
+        description: Reverse proxy & SSL
+    - Pi-hole:
+        icon: pi-hole
+        href: https://pihole.yourdomain.com
+        description: Network-wide ad blocking
+    - Uptime Kuma:
+        icon: uptime-kuma
+        href: https://status.yourdomain.com
+        description: Service uptime monitoring
+    - Speedtest Tracker:
+        icon: speedtest-tracker
+        href: https://speedtest.yourdomain.com
+        description: ISP speed tracking
+
+- Home Automation:
+    - Home Assistant:
+        icon: home-assistant
+        href: https://homeassistant.yourdomain.com
+        description: Smart home control
+
+- Media:
+    - Plex:
+        icon: plex
+        href: https://plex.yourdomain.com
+        description: Media streaming
+    - Jellyfin:
+        icon: jellyfin
+        href: https://jellyfin.yourdomain.com
+        description: Media streaming
+    - Immich:
+        icon: immich
+        href: https://photos.yourdomain.com
+        description: Photo management
+    - Audiobookshelf:
+        icon: audiobookshelf
+        href: https://audiobooks.yourdomain.com
+        description: Audiobook server
+    - Calibre:
+        icon: calibre
+        href: https://calibre.yourdomain.com
+        description: eBook management
+
+- Downloads & Indexers:
+    - Seerr:
+        icon: overseerr
+        href: https://oversee.yourdomain.com
+        description: Media request management
+    - Sonarr:
+        icon: sonarr
+        href: https://sonarr.yourdomain.com
+        description: TV show management
+    - Radarr:
+        icon: radarr
+        href: https://radarr.yourdomain.com
+        description: Movie management
+    - Readarr:
+        icon: readarr
+        href: https://readarr.yourdomain.com
+        description: Book management
+    - Prowlarr:
+        icon: prowlarr
+        href: https://prowlarr.yourdomain.com
+        description: Indexer management
+    - qBittorrent:
+        icon: qbittorrent
+        href: https://qbit.yourdomain.com
+        description: Torrent client
+    - SearXNG:
+        icon: searxng
+        href: https://searxng.yourdomain.com
+        description: Privacy-respecting search
+
+- Productivity:
+    - Nextcloud:
+        icon: nextcloud
+        href: https://cloud.yourdomain.com
+        description: File sync & cloud storage
+    - Vaultwarden:
+        icon: vaultwarden
+        href: https://vault.yourdomain.com
+        description: Password manager
+    - Paperless-ngx:
+        icon: paperless
+        href: https://paperless.yourdomain.com
+        description: Document management
+    - WordPress:
+        icon: wordpress
+        href: https://wordpress.yourdomain.com
+        description: Website
+    - Stirling PDF:
+        icon: stirling-pdf
+        href: https://pdf.yourdomain.com
+        description: PDF tools
+    - IT-Tools:
+        icon: it-tools
+        href: https://tools.yourdomain.com
+        description: Developer & IT utilities
+    - DumbPad:
+        icon: note-text
+        href: https://dumbpad.yourdomain.com
+        description: Simple collaborative notes

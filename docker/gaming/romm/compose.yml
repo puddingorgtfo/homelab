@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  romm:
+    image: rommapp/romm:latest
+    container_name: romm
+    ports:
+      - "8085:8080"
+    volumes:
+      - "/mnt/nas/C drive/Rom/Roms:/romm/library"
+      - romm-resources:/romm/resources
+      - romm-redis:/redis-data
+    environment:
+      - DB_HOST=romm-db
+      - DB_NAME=romm
+      - DB_USER=${ROMM_DB_USER}
+      - DB_PASSWD=${ROMM_DB_PASSWORD}
+      - ROMM_AUTH_SECRET_KEY=${ROMM_AUTH_SECRET_KEY}
+    depends_on:
+      - romm-db
+
+  romm-db:
+    image: mariadb:latest
+    container_name: romm-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=romm
+      - MYSQL_USER=${ROMM_DB_USER}
+      - MYSQL_PASSWORD=${ROMM_DB_PASSWORD}
+    volumes:
+      - romm-db:/var/lib/mysql
+
+volumes:
+  romm-resources:
+  romm-redis:
+  romm-db:

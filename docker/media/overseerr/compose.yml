@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:develop
+    container_name: overseerr
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/New_York
+    volumes:
+      - /mnt/nas/docker-configs/overseerr:/config
+    expose:
+      - 5055
+    networks:
+      - npm_default
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true
