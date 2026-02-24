@@ -108,3 +108,13 @@
         icon: note-text
         href: https://dumbpad.yourdomain.com
         description: Simple collaborative notes
+
+- Automation:
+    - n8n:
+        icon: n8n
+        href: https://n8n.yourdomain.com
+        description: Workflow automation
+    - Ollama:
+        icon: ollama
+        href: https://ollama.yourdomain.com
+        description: Local AI model chat
