@@ -104,6 +104,14 @@
         icon: it-tools
         href: https://tools.yourdomain.com
         description: Developer & IT utilities
+    - Mealie:
+        icon: mealie
+        href: https://recipes.yourdomain.com
+        description: Recipe manager
+    - Linkwarden:
+        icon: linkwarden
+        href: https://links.yourdomain.com
+        description: Bookmark manager
     - DumbPad:
         icon: note-text
         href: https://dumbpad.yourdomain.com
