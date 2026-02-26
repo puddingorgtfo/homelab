@@ -1,94 +1,104 @@
 # Homelab Repository Update Workflow
 
-This document outlines the process for safely updating both private and public versions of the homelab repository, ensuring sensitive data remains protected.
+This document outlines the process for keeping both the public and private repositories in sync
+while ensuring sensitive data remains protected.
 
 ## Repository Structure
 
-- **Private Repository**: `homelab-private` (contains complete data with sensitive information)
-  - Uses git-crypt to encrypt sensitive files
-  - All sensitive data is stored in actual configuration files or in the `sensitive/` directory
+- **Public repository** (`origin`) — sanitized, no credentials, `main` branch
+  - `git push origin main`
+  - https://github.com/puddingorgtfo/homelab
 
-- **Public Repository**: `homelab` (sanitized version)
-  - No sensitive data is included
-  - Uses environment variables for all sensitive information
-  - No git-crypt is used
+- **Private repository** (`private`) — full config with encrypted `.env` files, `main` branch
+  - Uses git-crypt to encrypt `.env` files at rest
+  - https://github.com/puddingorgtfo/homelab-private
+
+Both remotes use `main` as their only branch. The local working tree is always on `main`.
 
 ## Update Workflow
 
-### 1. Make Changes to Private Repository
+### 1. Work on the local `main` branch
 
 ```bash
-# Switch to main branch
 git checkout main
-
-# Unlock git-crypt if needed
-git-crypt unlock /path/to/homelab-private-git-crypt.key
-
-# Make your changes
-# For sensitive data:
-# - Add directly to compose files using real values, or
-# - Store in the sensitive/ directory as separate files
-# - Environment variables can reference these files
-
-# Commit changes to private repository
-git add .
-git commit -m "Description of changes (private version)"
-git push private main
+# make your changes
+git add <files>
+git commit -m "description of changes"
 ```
 
-### 2. Create Sanitized Version for Public Repository
+### 2. Push to public (origin)
+
+Run a quick safety scan first to confirm no sensitive data is staged:
 
 ```bash
-# Create or switch to public branch
-git checkout public
-# If public branch doesn't exist: git checkout -b public
-
-# Remove sensitive directory if it exists
-git rm -r sensitive/
-
-# Update .gitattributes for public repository
-# Make it clear this is the public version without encryption
-
-# Sanitize any files that might contain sensitive information:
-# - Replace real domains with example.com
-# - Replace passwords/tokens with environment variables
-# - Remove any other sensitive information
-
-# Commit sanitized changes
-git add .
-git commit -m "Description of changes (public version)"
-
-# Push to public repository
-git push origin public:main
+git diff HEAD~1 | grep -iE 'password|secret|token|eyJ|192\.168\.|[0-9]{10}:AA'
+git push origin main
 ```
 
-### 3. Important Guidelines
+### 3. Push to private
+
+The private remote has a git-crypt encrypted file (`sensitive/linkwarden.env`) that is
+corrupted and blocks a normal `git checkout`. Use git plumbing to push without checking out:
+
+```bash
+# Fetch current private/main HEAD
+git fetch private main
+PRIVATE_HEAD=$(cat .git/FETCH_HEAD | awk '{print $1}')
+
+# Build a new tree based on private/main + your changes
+export GIT_INDEX_FILE=/tmp/homelab-private-index
+git read-tree $PRIVATE_HEAD
+
+# Stage each changed file by its blob SHA (repeat for each file)
+git update-index --add --cacheinfo 100644,$(git rev-parse HEAD:path/to/file),path/to/file
+
+NEW_TREE=$(git write-tree)
+NEW_COMMIT=$(git commit-tree $NEW_TREE -p $PRIVATE_HEAD -m "your commit message")
+git push private $NEW_COMMIT:main
+
+unset GIT_INDEX_FILE && rm -f /tmp/homelab-private-index
+```
+
+For multiple changed files at once:
+```bash
+git diff HEAD~1 --name-only | while read f; do
+  MODE=$(git ls-tree HEAD -- "$f" | awk '{print $1}')
+  SHA=$(git ls-tree HEAD -- "$f" | awk '{print $3}')
+  [ -n "$SHA" ] && git update-index --add --cacheinfo "$MODE,$SHA,$f"
+done
+```
+
+## Important Guidelines
 
 1. **Never commit actual credentials to the public repository**
-2. **Always replace sensitive values with environment variables in the public version**
-3. **Use descriptive placeholders in .env.example (e.g., CHANGE_ME_SOMETHING)**
-4. **Double-check files for sensitive data before pushing to public**
-5. **Keep both repositories in sync (same features but different handling of secrets)**
+2. **Always use `${VARIABLE}` substitution in compose files — never hardcode values**
+3. **Use `your-`, `change-me`, or `CHANGE_ME_` prefixes in `.env.example` files**
+4. **Double-check before pushing to public:**
+   ```bash
+   git diff HEAD~1 | grep -iE 'password|secret|token|eyJ|your-real-domain'
+   ```
+5. **Real credentials live in encrypted `.env` files on the private remote** — not in
+   any tracked file on the public remote
 
-### 4. Useful Commands
+## Unlocking git-crypt (private repo)
 
+To read encrypted `.env` files locally:
 ```bash
-# Check for sensitive information
-git grep -i "password\|secret\|token\|key\|credential"
-git grep -i "your-actual-domain-name"
-
-# Check file differences between branches
-git diff main..public
-
-# Create a .env file from example
-cp .env.example .env
-# Then edit the .env file with your actual values
+git-crypt unlock /home/beanz/homelab-private-git-crypt.key
 ```
 
-## Troubleshooting
+The key is stored at `/home/beanz/homelab-private-git-crypt.key` and backed up in Vaultwarden.
 
-- If git-crypt key is lost, you'll need to reinitialize git-crypt and recreate encrypted files
-- If public repository accidentally includes sensitive data, immediately:
-  1. Remove the sensitive data
-  2. Force push a new commit
-  3. Consider the exposed data compromised (reset passwords, etc.)
+## Useful Commands
+
+```bash
+# Confirm no .env files are tracked on public
+git ls-files | grep '\.env'
+
+# Scan for sensitive data in staged changes
+git diff --cached | grep -iE "password\|secret\|token\|key\|credential"
+
+# Compare what each remote has
+git log origin/main..private/main --oneline
+git log private/main..origin/main --oneline
+```
