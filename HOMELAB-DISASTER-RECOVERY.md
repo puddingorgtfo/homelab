@@ -75,8 +75,8 @@ ls -R docker/
 ## 🔐 Secrets & Credentials
 
 ### Master Passwords
-- **Sudo password**: `YOUR_PASSWORD`
-- **Common DB password**: `YOUR_PASSWORD`
+- **Sudo password**: `<YOUR_SUDO_PASSWORD>`
+- **Common DB password**: `<YOUR_DB_PASSWORD>`
 - **All other secrets**: Encrypted in git-crypt protected .env files
 
 ### Git-Crypt Key Locations

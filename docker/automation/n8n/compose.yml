@@ -5,8 +5,12 @@ services:
     restart: unless-stopped
     ports:
       - "5678:5678"
+    group_add:
+      - "984"
     volumes:
       - ${N8N_DATA_DIR}:/home/node/.n8n
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/nas/n8n:/mnt/nas/n8n
     environment:
       - N8N_PORT=${N8N_PORT}
       - N8N_HOST=${N8N_HOST}
@@ -19,6 +23,8 @@ services:
       - WEBHOOK_URL=${WEBHOOK_URL}
       - N8N_EDITOR_BASE_URL=${WEBHOOK_URL}
       - TZ=${TZ}
+      - NODE_FUNCTION_ALLOW_EXTERNAL=node-ssh
+      - NODE_FUNCTION_ALLOW_BUILTIN=*
     networks:
       - npm_default
 
