@@ -3,8 +3,8 @@
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
 # / was on /dev/sda2 during curtin installation
 
-# NVMe mount removed - drive died in power surge Jan 2026
-# UUID=f92a1abd-7e4f-4ddb-9713-cebf5a54ae37  /mnt/nvme  ext4  defaults,noatime  0  2
+# NVMe — 984GB ext4, label: NVMe-VM (removed Jan 2026 after power surge, restored Mar 2026)
+UUID=f92a1abd-7e4f-4ddb-9713-cebf5a54ae37  /mnt/nvme  ext4  defaults,noatime  0  2
 /dev/disk/by-uuid/2d6d985f-951e-4b8a-b680-6f95a4cb2885 / ext4 defaults 0 1
 /swap.img	none	swap	sw	0	0
 

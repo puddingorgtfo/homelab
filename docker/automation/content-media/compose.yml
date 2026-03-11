@@ -1,0 +1,15 @@
+services:
+  content-media:
+    image: nginx:alpine
+    container_name: content-media
+    restart: unless-stopped
+    ports:
+      - "8092:80"
+    volumes:
+      - /mnt/nas/n8n/content-images:/usr/share/nginx/html:ro
+    networks:
+      - npm_default
+
+networks:
+  npm_default:
+    external: true

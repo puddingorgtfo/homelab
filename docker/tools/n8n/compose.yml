@@ -23,11 +23,9 @@ services:
     container_name: n8n-mcp-server
     environment:
       - N8N_API_KEY=${N8N_API_KEY}
-      - N8N_API_URL=${N8N_API_URL:-http://n8n:5678/api/v1}
+      - N8N_API_URL=${N8N_API_URL:-http://192.168.0.78:5678/api/v1}
     networks:
       - n8n-mcp-network
-    depends_on:
-      - n8n
     healthcheck:
       test: ["CMD", "echo", "healthy"]
       interval: 30s

@@ -1,0 +1,25 @@
+services:
+  obsidian:
+    image: ghcr.io/linuxserver/obsidian:latest
+    container_name: obsidian
+    restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined
+    shm_size: "1gb"
+    expose:
+      - "3000"
+    volumes:
+      - /mnt/nas/obsidian/config:/config
+      - /mnt/nas/obsidian/vaults:/vaults
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+      - CUSTOM_USER=${OBSIDIAN_USER}
+      - PASSWORD=${OBSIDIAN_PASSWORD}
+    networks:
+      - npm_default
+
+networks:
+  npm_default:
+    external: true

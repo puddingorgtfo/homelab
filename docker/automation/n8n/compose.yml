@@ -25,6 +25,10 @@ services:
       - TZ=${TZ}
       - NODE_FUNCTION_ALLOW_EXTERNAL=node-ssh
       - NODE_FUNCTION_ALLOW_BUILTIN=*
+      - N8N_RUNNERS_MAX_EXECUTION_TIMEOUT=1200
+      - N8N_RUNNERS_TASK_TIMEOUT=1200
+      - N8N_RUNNERS_ENABLED=false
+      - N8N_TRUST_PROXY=true
     networks:
       - npm_default
 

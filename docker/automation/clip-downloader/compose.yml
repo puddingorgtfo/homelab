@@ -1,0 +1,16 @@
+services:
+  clip-downloader:
+    build: .
+    container_name: clip-downloader
+    restart: unless-stopped
+    volumes:
+      - /mnt/nas/n8n:/mnt/nas/n8n
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    networks:
+      - npm_default
+
+networks:
+  npm_default:
+    external: true

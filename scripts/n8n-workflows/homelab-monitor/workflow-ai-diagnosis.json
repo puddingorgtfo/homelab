@@ -1,0 +1,229 @@
+{
+  "name": "Homelab - AI Diagnosis & Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "trigger-b1",
+      "name": "Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const escalations = $input.first().json.escalations || [];\nif (escalations.length === 0) return [];\nreturn escalations.map(e => ({ json: e }));"
+      },
+      "id": "code-b1",
+      "name": "Split Escalations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker logs --tail 40 ' + $json.name + ' 2>&1 || echo \"container-not-found\"' }}"
+      },
+      "id": "ssh-b1",
+      "name": "Fetch Container Logs",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "sshPassword": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "SSH Password account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Split Escalations').item.json;\nconst sshOut = $input.first().json.stdout || $input.first().json.stderr || 'No logs captured';\nreturn [{ json: { ...original, logs: sshOut.substring(0, 1500) } }];"
+      },
+      "id": "code-b2",
+      "name": "Merge Logs With Incident Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Container: ' + $json.name + ' (' + $json.tier + ' tier)\\nDown since: ' + $json.firstSeen + '\\nAuto-fix attempts: ' + $json.retries + '\\n\\nRecent logs:\\n' + $json.logs + '\\n\\n2-3 bullets: likely cause + exact fix command.' }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a homelab Docker troubleshooter. Be extremely concise \u2014 plain text only, no markdown. Give 2-3 bullet points: most likely cause, and manual fix steps."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "chainllm-b1",
+      "name": "Claude Diagnosis",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "mode": "id",
+          "value": "claude-haiku-4-5-20251001"
+        },
+        "options": {}
+      },
+      "id": "llm-b1",
+      "name": "Anthropic Haiku",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        968,
+        224
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Anthropic"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Merge Logs With Incident Data').item.json;\nconst diagnosis = $json.text || 'No diagnosis available';\nconst downSince = data.firstSeen ? new Date(data.firstSeen).toLocaleString('en-US', {timeZone:'America/New_York'}) : 'Unknown';\n\nconst msg = `HOMELAB ALERT - Manual Fix Required\\n\\nService: ${data.name} [${data.tier}]\\nDown since: ${downSince}\\nFix attempts: ${data.retries}\\nCompose: ${data.composePath || 'unknown'}/compose.yml\\n\\nDiagnosis:\\n${diagnosis}`;\n\nreturn [{ json: { message: msg } }];"
+      },
+      "id": "code-b3",
+      "name": "Format Alert Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-b1",
+      "name": "Send Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1472,
+        0
+      ],
+      "webhookId": "f882d212-4c26-4f14-b7e1-470180879108",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Telegram Bot (Claude)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Split Escalations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Escalations": {
+      "main": [
+        [
+          {
+            "node": "Fetch Container Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Container Logs": {
+      "main": [
+        [
+          {
+            "node": "Merge Logs With Incident Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Logs With Incident Data": {
+      "main": [
+        [
+          {
+            "node": "Claude Diagnosis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Haiku": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Claude Diagnosis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Diagnosis": {
+      "main": [
+        [
+          {
+            "node": "Format Alert Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Alert Message": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "_n8n_id": "aG2R53gpq1vCD1NR"
+}

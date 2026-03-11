@@ -1,0 +1,17 @@
+services:
+  browserless:
+    image: ghcr.io/browserless/chromium:latest
+    container_name: browserless
+    restart: unless-stopped
+    ports:
+      - "3100:3000"
+    environment:
+      - TIMEOUT=60000
+      - CONCURRENT=5
+      - ALLOW_GET=true
+    networks:
+      - browserless
+
+networks:
+  browserless:
+    driver: bridge

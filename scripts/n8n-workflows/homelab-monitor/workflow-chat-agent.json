@@ -1,0 +1,304 @@
+{
+  "name": "Homelab - Chat Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "d-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -208
+      ],
+      "webhookId": "7ba59e32-e6f9-4c54-82a2-35a24e6144f6",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Telegram Bot (Claude)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are the homelab assistant for your self-hosted server at your-domain.com.\nYou manage services on VM 100 (YOUR_SERVER_IP), Proxmox (YOUR_PROXMOX_IP), NAS (YOUR_NAS_IP).\n\nSERVICES (container name):\n- Critical: npm-app-1, pihole, cloudflared-tunnel, n8n\n- Important: homeassistant, nextcloud-app, immich-immich-server-1, portainer, vaultwarden, mosquitto\n- Media: plex, jellyfin, sonarr, radarr, prowlarr, qbittorrent, readarr\n- Productivity: paperless-web\n\nCOMPOSE PATHS: /home/beanz/homelab/docker/<category>/<service>/compose.yml\nCategories: infrastructure, smart-home, productivity, media, automation\n\nYOU CAN: check status, get logs, restart containers, pull+recreate containers, check disk/memory, check NFS, check internet, read/clear incidents, restart/start/stop/check VM 100 via Proxmox API.\nYOU CANNOT: edit config files, edit compose files, push to git, change container configs, do anything structural or destructive.\nNOTE: Wake-on-LAN is not possible from this bot - n8n runs on VM 100 which is on Proxmox. If Proxmox is off, n8n is also off.\n\nBe concise - this is Telegram. Plain text only, no markdown symbols. For explicit user requests, just do the action and report the result. For questions, just answer directly."
+        }
+      },
+      "id": "d-agent",
+      "name": "Homelab AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        600,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ 'homelab_chat_' + $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "d-memory",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Get current status of all Docker containers and active incidents. Call this when asked about what is running, what is broken, overall health, or current incidents.",
+        "jsCode": "const http = require('http');\nconst fs = require('fs');\n\nfunction dockerGet(path) {\n  return new Promise((resolve, reject) => {\n    const chunks = [];\n    const req = http.request({ socketPath: '/var/run/docker.sock', path, method: 'GET' }, res => {\n      res.on('data', c => chunks.push(c));\n      res.on('end', () => {\n        try { resolve(JSON.parse(Buffer.concat(chunks).toString())); }\n        catch(e) { resolve(Buffer.concat(chunks).toString()); }\n      });\n    });\n    req.on('error', reject);\n    req.end();\n  });\n}\n\nconst containers = await dockerGet('/v1.44/containers/json?all=1');\nconst lines = containers.map(c => {\n  const name = (c.Names[0] || '').replace(/^\\//, '');\n  return `${name}\\t${c.Status}`;\n}).join('\\n');\n\nlet state = {};\ntry { state = JSON.parse(fs.readFileSync('/mnt/nas/n8n/homelab-state.json', 'utf8')); } catch(e) {}\n\nconst incidents = Object.keys(state.incidents || {});\nconst incidentSummary = incidents.length === 0\n  ? 'No active incidents'\n  : Object.entries(state.incidents).map(([k,v]) => `${k}: retries=${v.retries} status=${v.status}`).join(', ');\n\nreturn `CONTAINERS:\\n${lines}\\n\\nINCIDENTS: ${incidentSummary}`;\n"
+      },
+      "id": "d-tool-status",
+      "name": "Tool: Get Homelab Status",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Get recent logs for a specific Docker container. Input: the container name (e.g. sonarr, plex, n8n). Call this when asked to check logs, diagnose a container, or see what went wrong.",
+        "jsCode": "const http = require('http');\n\nconst containerName = query.trim().replace(/[^a-zA-Z0-9_\\-\\.]/g, '');\nif (!containerName) return 'Error: no container name provided';\n\nconst logs = await new Promise((resolve, reject) => {\n  const chunks = [];\n  const req = http.request({\n    socketPath: '/var/run/docker.sock',\n    path: `/v1.44/containers/${containerName}/logs?stdout=1&stderr=1&tail=30`,\n    method: 'GET'\n  }, res => {\n    if (res.statusCode === 404) { resolve('Container not found: ' + containerName); return; }\n    res.on('data', c => chunks.push(c));\n    res.on('end', () => {\n      const buf = Buffer.concat(chunks);\n      let result = '';\n      let offset = 0;\n      while (offset + 8 <= buf.length) {\n        const size = buf.readUInt32BE(offset + 4);\n        if (offset + 8 + size > buf.length) break;\n        result += buf.slice(offset + 8, offset + 8 + size).toString();\n        offset += 8 + size;\n      }\n      resolve(result || buf.toString());\n    });\n  });\n  req.on('error', reject);\n  req.end();\n});\n\nreturn logs || 'No logs';\n"
+      },
+      "id": "d-tool-logs",
+      "name": "Tool: Get Container Logs",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Restart a Docker container using docker compose. Input format: 'container_name|compose_category' e.g. 'sonarr|media' or 'n8n|automation'. Call this when user asks to restart a service.",
+        "jsCode": "const http = require('http');\n\nconst containerName = query.split('|')[0].trim().replace(/[^a-zA-Z0-9_\\-\\.]/g, '');\nif (!containerName) return 'Error: provide container name';\n\nconst result = await new Promise((resolve, reject) => {\n  const req = http.request({\n    socketPath: '/var/run/docker.sock',\n    path: `/v1.44/containers/${containerName}/restart`,\n    method: 'POST'\n  }, res => {\n    if (res.statusCode === 204) resolve(`${containerName} restarted successfully`);\n    else if (res.statusCode === 404) resolve(`Container not found: ${containerName}`);\n    else resolve(`Unexpected response: HTTP ${res.statusCode}`);\n  });\n  req.on('error', reject);\n  req.end();\n});\n\nreturn result;\n"
+      },
+      "id": "d-tool-restart",
+      "name": "Tool: Restart Container",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Check infrastructure health: disk space, memory, uptime, NAS, internet connectivity. Call this when asked about disk space, memory, internet, NAS, or overall system health.",
+        "jsCode": "const http = require('http');\nconst https = require('https');\nconst fs = require('fs');\n\nconst results = [];\n\n// Docker info via socket\ntry {\n  const info = await new Promise((resolve) => {\n    const chunks = [];\n    const req = http.request({ socketPath: '/var/run/docker.sock', path: '/v1.44/info', method: 'GET' }, res => {\n      res.on('data', c => chunks.push(c));\n      res.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString())); } catch(e) { resolve({}); } });\n    });\n    req.on('error', () => resolve({}));\n    req.end();\n  });\n  results.push(`Docker: ${info.ContainersRunning || '?'} running / ${info.Containers || '?'} total`);\n} catch(e) { results.push('Docker: error'); }\n\n// Memory\ntry {\n  const mem = fs.readFileSync('/proc/meminfo', 'utf8');\n  const total = parseInt(mem.match(/MemTotal:\\s+(\\d+)/)?.[1] || 0);\n  const avail = parseInt(mem.match(/MemAvailable:\\s+(\\d+)/)?.[1] || 0);\n  const usedPct = Math.round((total - avail) / total * 100);\n  results.push(`Memory: ${Math.round(avail/1024)}MB free of ${Math.round(total/1024)}MB (${usedPct}% used)`);\n} catch(e) { results.push('Memory: unavailable'); }\n\n// Uptime\ntry {\n  const up = parseFloat(fs.readFileSync('/proc/uptime', 'utf8').split(' ')[0]);\n  results.push(`Uptime: ${Math.floor(up/86400)}d ${Math.floor((up%86400)/3600)}h`);\n} catch(e) {}\n\n// NAS disk\ntry {\n  const stats = fs.statfsSync('/mnt/nas/n8n');\n  const totalGB = Math.round(stats.blocks * stats.bsize / 1e9);\n  const freeGB = Math.round(stats.bfree * stats.bsize / 1e9);\n  results.push(`NAS: ${freeGB}GB free of ${totalGB}GB`);\n} catch(e) { results.push('NAS: not mounted'); }\n\n// Internet - use HTTPS to hostname (raw IP 1.1.1.1 has TLS cert issues inside Docker)\nconst internetOk = await new Promise((resolve) => {\n  const req = https.request(\n    { hostname: 'cloudflare.com', path: '/', method: 'HEAD' },\n    () => resolve(true)\n  );\n  req.setTimeout(5000, () => { req.destroy(); resolve(false); });\n  req.on('error', () => resolve(false));\n  req.end();\n});\nresults.push(`Internet: ${internetOk ? 'reachable' : 'UNREACHABLE'}`);\n\n// Local network - check NPM on same host (router YOUR_ROUTER_IP not reliably routable from Docker bridge)\nconst npmOk = await new Promise((resolve) => {\n  const req = http.request(\n    { hostname: 'YOUR_SERVER_IP', port: 81, path: '/', method: 'HEAD' },\n    () => resolve(true)\n  );\n  req.setTimeout(3000, () => { req.destroy(); resolve(false); });\n  req.on('error', () => resolve(false));\n  req.end();\n});\nresults.push(`Local network (NPM): ${npmOk ? 'reachable' : 'unreachable'}`);\n\nreturn results.join('\\n');\n"
+      },
+      "id": "d-tool-infra",
+      "name": "Tool: Check Infrastructure",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "description": "List or clear monitoring incidents. Input 'list' to see current incidents, or 'clear:service_name' to clear an incident (so monitoring resumes retrying it). Use clear when user says they are fixing something manually.",
+        "jsCode": "const fs = require('fs');\n\nlet state;\ntry { state = JSON.parse(fs.readFileSync('/mnt/nas/n8n/homelab-state.json', 'utf8')); }\ncatch(e) { state = { incidents: {} }; }\n\nconst action = query.trim().toLowerCase();\n\nif (action === 'list') {\n  const keys = Object.keys(state.incidents || {});\n  if (keys.length === 0) return 'No active incidents. All monitored services are healthy.';\n  return 'Active incidents:\\n' + keys.map(k => {\n    const i = state.incidents[k];\n    return `${k}: retries=${i.retries} status=${i.status} since=${i.firstSeen}`;\n  }).join('\\n');\n}\n\nif (action.startsWith('clear:')) {\n  const svc = action.substring(6).trim();\n  if (state.incidents && state.incidents[svc]) {\n    delete state.incidents[svc];\n    fs.writeFileSync('/mnt/nas/n8n/homelab-state.json', JSON.stringify(state, null, 2));\n    return `Cleared incident for ${svc}. Monitor will resume retrying next cycle.`;\n  }\n  return `No active incident for ${svc}. Current: ${Object.keys(state.incidents || {}).join(', ') || 'none'}`;\n}\n\nreturn 'Unknown action. Use \"list\" or \"clear:service_name\"';"
+      },
+      "id": "d-tool-incidents",
+      "name": "Tool: Manage Incidents",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Control VM 100 (the server) via Proxmox API. Input: status | reboot | start | stop. Use for: restart server, restart VM, check VM status, start the server, shut down the server.",
+        "jsCode": "const https = require('https');\n\nconst action = query.trim().toLowerCase();\nif (!['status', 'reboot', 'start', 'stop'].includes(action)) {\n  return 'Valid actions: status, reboot, start, stop';\n}\n\n// Step 1: Authenticate with Proxmox API (self-signed cert, ignore TLS errors)\nconst postData = 'username=root%40pam&password=YOUR_PASSWORD';\nconst authResult = await new Promise((resolve) => {\n  const chunks = [];\n  const req = https.request({\n    hostname: 'YOUR_PROXMOX_IP', port: 8006,\n    path: '/api2/json/access/ticket', method: 'POST',\n    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(postData) },\n    rejectUnauthorized: false\n  }, res => {\n    res.on('data', c => chunks.push(c));\n    res.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString())); } catch(e) { resolve(null); } });\n  });\n  req.on('error', () => resolve(null));\n  req.write(postData);\n  req.end();\n});\n\nif (!authResult?.data?.ticket) return 'Error: Could not authenticate with Proxmox API';\nconst ticket = authResult.data.ticket;\nconst csrfToken = authResult.data.CSRFPreventionToken;\nconst cookie = `PVEAuthCookie=${ticket}`;\n\n// Step 2: Get current VM 100 status\nconst statusResult = await new Promise((resolve) => {\n  const chunks = [];\n  const req = https.request({\n    hostname: 'YOUR_PROXMOX_IP', port: 8006,\n    path: '/api2/json/nodes/pve/qemu/100/status/current', method: 'GET',\n    headers: { 'Cookie': cookie },\n    rejectUnauthorized: false\n  }, res => {\n    res.on('data', c => chunks.push(c));\n    res.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString())); } catch(e) { resolve(null); } });\n  });\n  req.on('error', () => resolve(null));\n  req.end();\n});\n\nconst vmStatus = statusResult?.data?.status || 'unknown';\n\nif (action === 'status') {\n  const cpu = Math.round((statusResult?.data?.cpu || 0) * 100);\n  const memMB = Math.round((statusResult?.data?.mem || 0) / 1024 / 1024);\n  const uptime = statusResult?.data?.uptime || 0;\n  return `VM 100: ${vmStatus}\\nCPU: ${cpu}%\\nMemory: ${memMB}MB\\nUptime: ${Math.floor(uptime/3600)}h ${Math.floor((uptime%3600)/60)}m`;\n}\n\n// Guards\nif (action === 'reboot' && vmStatus !== 'running') return `Cannot reboot: VM 100 is ${vmStatus}`;\nif (action === 'start' && vmStatus === 'running') return 'VM 100 is already running';\nif (action === 'stop' && vmStatus !== 'running') return `VM 100 is already ${vmStatus}`;\n\n// Step 3: Execute action\nconst result = await new Promise((resolve) => {\n  const req = https.request({\n    hostname: 'YOUR_PROXMOX_IP', port: 8006,\n    path: `/api2/json/nodes/pve/qemu/100/status/${action}`, method: 'POST',\n    headers: { 'Cookie': cookie, 'CSRFPreventionToken': csrfToken, 'Content-Length': 0 },\n    rejectUnauthorized: false\n  }, res => {\n    const chunks = [];\n    res.on('data', c => chunks.push(c));\n    res.on('end', () => resolve(res.statusCode === 200 ? 'success' : `HTTP ${res.statusCode}`));\n  });\n  req.on('error', () => resolve('connection error'));\n  req.end();\n});\n\nif (result === 'success') {\n  if (action === 'reboot') return 'VM 100 reboot sent to Proxmox. n8n will go offline for ~60 seconds - you will not get a confirmation reply.';\n  if (action === 'start') return 'VM 100 start sent. Should be online in ~60 seconds.';\n  if (action === 'stop') return 'VM 100 stop sent. All containers and n8n will go offline.';\n}\nreturn `Proxmox API returned: ${result}`;\n"
+      },
+      "id": "d-tool-proxmox",
+      "name": "Tool: Proxmox VM Action",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        736,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "id": "d-telegram-reply",
+      "name": "Telegram: Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        -208
+      ],
+      "webhookId": "4c8f8fac-a8cc-4e0f-b073-9f3120a9146d",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Telegram Bot (Claude)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.5",
+        "options": {}
+      },
+      "id": "d-model",
+      "name": "Claude Sonnet",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        864,
+        16
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "OpenRouter"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Homelab AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Get Homelab Status": {
+      "ai_tool": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Get Container Logs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_tool",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Tool: Restart Container": {
+      "ai_tool": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_tool",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Tool: Check Infrastructure": {
+      "ai_tool": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_tool",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Tool: Manage Incidents": {
+      "ai_tool": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_tool",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Tool: Proxmox VM Action": {
+      "ai_tool": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_tool",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Claude Sonnet": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Homelab AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "_n8n_id": "fcn82ak01ioQQadC"
+}
