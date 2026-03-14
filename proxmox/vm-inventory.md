@@ -67,6 +67,41 @@ Template/snapshot of VM 100 for backup purposes.
 | Boot Disk | 100GB on qnap-nfs |
 | GPU | PCIe passthrough (slot 0000:42:00) |
 
+## VM 110 - truenas
+
+TrueNAS Scale NAS/storage server with PERC H710 PCIe passthrough.
+
+| Setting | Value |
+|---------|-------|
+| Status | Running |
+| CPU | 4 cores, host type |
+| RAM | 16GB |
+| Machine | q35 + OVMF (UEFI) |
+| OS Disk | 32GB on nvme-data |
+| EFI Disk | 128K on nvme-data |
+| Network | virtio on vmbr0 — 192.168.0.28 |
+| PCIe passthrough | 0000:05:00.0 (PERC H710 Adapter, IOMMU Group 24) |
+| OS | TrueNAS SCALE 25.04.2.6 (Fangtooth) |
+| Web UI | http://192.168.0.28 |
+
+### PERC H710 Setup
+- `megaraid_sas` blacklisted on Proxmox host; PERC bound to `vfio-pci`
+- IOMMU enabled: `intel_iommu=on iommu=pt` in GRUB
+- Single-disk RAID-0 VD created via `storcli` before TrueNAS could see the drive
+
+### ZFS Pool
+| Setting | Value |
+|---------|-------|
+| Pool | tank |
+| Mount | /mnt/tank |
+| Topology | Single disk stripe |
+| Drive | WD 6TB Red (WDC WD60EFAX-68JH4N0) — Bay 0 |
+| Usable | 5.46 TB |
+
+> Note: Single-disk stripe has no redundancy. Add second drive for mirror/RAIDZ when available.
+
+---
+
 ## CT 104 - tailscale-bridge (LXC)
 
 Lightweight LXC container running Tailscale for remote access.
