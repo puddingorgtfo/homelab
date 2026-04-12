@@ -1,18 +1,21 @@
-# /etc/fstab: static file system information.
+# /etc/fstab — VM 100 (Ubuntu 24.04 Docker host)
+# Last verified: 2026-04-12
 #
-# <file system> <mount point>   <type>  <options>       <dump>  <pass>
-# / was on /dev/sda2 during curtin installation
+# <file system>                                    <mount point>         <type>  <options>                                                                                                  <dump> <pass>
 
-# NVMe — 984GB ext4, label: NVMe-VM (removed Jan 2026 after power surge, restored Mar 2026)
-UUID=f92a1abd-7e4f-4ddb-9713-cebf5a54ae37  /mnt/nvme  ext4  defaults,noatime  0  2
-/dev/disk/by-uuid/2d6d985f-951e-4b8a-b680-6f95a4cb2885 / ext4 defaults 0 1
-/swap.img	none	swap	sw	0	0
+# Root — 270GB virtual disk on Proxmox nvme-data pool
+/dev/disk/by-uuid/<VM100_ROOT_UUID>                /                     ext4    defaults                                                                                                   0      1
 
-<NAS_IP>:/<NAS_EXPORT> /mnt/nas nfs defaults,rw,nolock,soft,timeo=600 0 0
-<NAS_IP>:/share/paperless/data       /mnt/nas/paperless/data       nfs defaults,noatime,rw 0 0
-<NAS_IP>:/share/paperless/media      /mnt/nas/paperless/media      nfs defaults,noatime,rw 0 0
-<NAS_IP>:/share/paperless/consume    /mnt/nas/paperless/consume    nfs defaults,noatime,rw 0 0
-<NAS_IP>:/share/paperless/export     /mnt/nas/paperless/export     nfs defaults,noatime,rw 0 0
-<NAS_IP>:/share/paperless/pgdata     /mnt/nas/paperless/pgdata     nfs defaults,noatime,rw 0 0
-<NAS_IP>:/share/paperless/redisdata  /mnt/nas/paperless/redisdata  nfs defaults,noatime,rw 0 0
-/swapfile none swap sw 0 0
+# Swap
+/swapfile                                          none                  swap    sw                                                                                                         0      0
+
+# NVMe data disk — 1TB virtual disk on Proxmox nvme-data pool (n8n data, content media)
+# Replaces dead 3.6TB NVMe (UUID f92a1abd-…) lost in Jan 2026 power surge
+UUID=<VM100_NVME_UUID>                             /mnt/nvme             ext4    defaults,nofail,noatime,x-systemd.device-timeout=30                                                       0      0
+
+# QNAP NAS (NFS)
+<NAS_IP>:/Jesse                                    /mnt/nas              nfs     defaults,rw,soft,timeo=30,retrans=3,nofail,_netdev,x-systemd.device-timeout=60,x-systemd.automount        0      0
+
+# TrueNAS Scale (VM 110) — NFS exports
+<TRUENAS_IP>:/mnt/tank                             /mnt/truenas          nfs     defaults,nofail,x-systemd.device-timeout=60,_netdev,x-systemd.automount                                  0      0
+<TRUENAS_IP>:/mnt/storage/data                     /mnt/truenas_storage  nfs     defaults,nofail,x-systemd.device-timeout=60,_netdev,x-systemd.automount                                  0      0

@@ -35,9 +35,11 @@ ls -R docker/
 
 ### Proxmox Host
 - **Hostname**: beanz-Standard-PC-Q35-ICH9-2009
-- **CPU**: 2x Xeon E5-2640 v2
-- **RAM**: 128GB
-- **Version**: Proxmox VE 9.1
+- **CPU**: 2x Xeon E5-2640 v2 (16 cores / 32 threads)
+- **RAM**: 128GB DDR3 ECC
+- **Version**: Proxmox VE 9.1.4
+- **Boot Disk**: 232GB SSD — Proxmox OS + `local` + `local-lvm` pools
+- **NVMe**: 4TB NVMe — `nvme-data` LVM-thin pool for VM disks (~1.3TB allocated, ~2.7TB free)
 
 ### Primary VM (VM 100 - Ubuntu 24.04)
 - **Role**: Docker host for all services
@@ -45,9 +47,11 @@ ls -R docker/
 - **Running Containers**: 40+
 - **GPU**: PCIe passthrough enabled
 - **Storage**:
-  - Boot: 232GB SSD
-  - NAS: 26TB NFS from <NAS_IP>:/<NAS_EXPORT> mounted at `/mnt/nas`
-  - ~~3.6TB NVMe~~ (DEAD - power surge Jan 2026, configs migrated to NAS)
+  - Boot: 270GB virtual disk on `nvme-data` (4TB NVMe), mounted at `/` (/dev/sda2)
+  - Data: 1TB virtual disk on `nvme-data`, mounted at `/mnt/nvme` (/dev/sdb) — n8n data, content media
+  - NAS: ~26TB NFS from <NAS_IP>:/Jesse mounted at `/mnt/nas`
+  - TrueNAS: NFS from <TRUENAS_IP> at `/mnt/truenas` and `/mnt/truenas_storage`
+  - ~~3.6TB NVMe~~ (DEAD — power surge Jan 2026; replaced by 4TB NVMe Mar 2026)
 
 ### Network
 - **Router/Gateway**: <ROUTER_IP>

@@ -10,7 +10,8 @@ The main workhorse VM running Ubuntu 24.04 with all Docker containers.
 | CPU | 6 cores, host passthrough |
 | RAM | 32GB (no ballooning) |
 | Machine | q35 |
-| Boot Disk | 100GB on local-lvm (virtio-scsi, iothread, discard) |
+| Boot Disk | 270GB on nvme-data (virtio-scsi, iothread, discard) — migrated from local-lvm Mar 2026 |
+| Data Disk | 1TB on nvme-data → `/mnt/nvme` inside VM (n8n data, content media) |
 | Network | virtio on vmbr0 |
 | GPU | PCIe passthrough (slot 0000:42:00) |
 | Guest Agent | Enabled |

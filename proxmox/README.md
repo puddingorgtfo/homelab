@@ -6,10 +6,10 @@
 |-----------|--------------|
 | CPU | 2x Intel Xeon E5-2640 v2 @ 2.00GHz (16 cores / 32 threads) |
 | RAM | 128GB DDR3 ECC |
-| Boot Disk | 232GB SSD (LVM: 68GB root + 8GB swap + 137GB LVM-thin) |
-| Data Disk | QNAP NAS via NFS |
-| NAS | QNAP NFS share (~26TB) |
-| GPU | PCIe passthrough to main VM (slot `0000:42:00`) |
+| Boot Disk | 232GB SSD (Proxmox OS: 68GB root + 8GB swap + 137GB LVM-thin for CTs) |
+| NVMe | 4TB NVMe (`nvme-data` LVM-thin pool — VM boot + data disks) |
+| NAS | QNAP NFS share (~26TB, `qnap-nfs` pool) |
+| GPU | PCIe passthrough to VM 100 (slot `0000:42:00`) |
 
 ## Software
 
@@ -27,7 +27,7 @@ See [network.md](network.md) for full interface config.
 
 | VMID | Name | Type | Status | Resources |
 |------|------|------|--------|-----------|
-| 100 | main-ubuntu-desktop | KVM | Running | 6 cores, 32GB RAM, 100GB SSD |
+| 100 | main-ubuntu-desktop | KVM | Running | 6 cores, 32GB RAM, 270GB boot + 1TB data (nvme-data) |
 | 101 | windows11 | KVM | Stopped | 8 cores, 32GB RAM, 500GB |
 | 102 | cachyos | KVM | Stopped | 8 cores, 16GB RAM, 499GB |
 | 103 | windows | KVM | Stopped | 8 cores, 32GB RAM, 500GB |

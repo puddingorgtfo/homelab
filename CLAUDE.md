@@ -88,7 +88,7 @@ All services exposed at `*.burnhamandsons.com` via Cloudflare Tunnel → NPM.
 | NAS media | /mnt/nas/movies, /mnt/nas/Tv Shows, /mnt/nas/books |
 | NAS data | /mnt/nas/immich/upload, /mnt/nas/paperless/, /mnt/nas/nextcloud/data, /mnt/nas/vaultwarden/data, /mnt/nas/downloads |
 | n8n workflows | /home/beanz/n8n-workflows/ |
-| NVMe mount (VM 100) | /mnt/nvme — 984GB ext4, UUID f92a1abd-..., n8n data + content media |
+| NVMe mount (VM 100) | /mnt/nvme — 1TB ext4 (/dev/sdb), n8n data + content media; backed by 4TB NVMe on Proxmox host (nvme-data pool) |
 
 ## Deploying / Restarting Services
 
