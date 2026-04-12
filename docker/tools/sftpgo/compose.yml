@@ -1,0 +1,26 @@
+services:
+  sftpgo:
+    image: drakkan/sftpgo:latest
+    container_name: sftpgo
+    restart: unless-stopped
+    environment:
+      - TZ=America/New_York
+      - SFTPGO_WEBDAVD__BINDINGS__0__PORT=0        # disable WebDAV
+      - SFTPGO_FTPD__BINDINGS__0__PORT=0            # disable plain FTP
+    ports:
+      - "2022:2022"   # SFTP
+      - "8095:8080"   # web portal + admin UI
+    volumes:
+      - sftpgo_data:/var/lib/sftpgo             # SFTPGo config, DB, keys
+      - /mnt/truenas/sftpgo:/srv/sftpgo/data      # TrueNAS tank/sftpgo dataset (2TB quota)
+    networks:
+      - default
+      - npm_default
+
+volumes:
+  sftpgo_data:
+    name: sftpgo_data
+
+networks:
+  npm_default:
+    external: true

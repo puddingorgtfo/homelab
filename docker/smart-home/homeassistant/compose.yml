@@ -5,11 +5,16 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: homeassistant
     restart: unless-stopped
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     volumes:
       - /opt/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
-    expose:
-      - "8123"
+      - /run/dbus:/run/dbus:ro
+    ports:
+      - "8123:8123"
     networks:
       - npm_default
 

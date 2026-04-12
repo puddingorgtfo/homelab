@@ -5,6 +5,9 @@ services:
     restart: unless-stopped
     volumes:
       - /mnt/nas/n8n:/mnt/nas/n8n
+      - /mnt/nas/n8n/yt-dlp-cache:/root/.cache/yt-dlp
+      - /home/beanz/assistant:/home/beanz/assistant:ro
+      - "/home/beanz/website design/burnham-and-sons:/home/beanz/brand-assets:ro"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}

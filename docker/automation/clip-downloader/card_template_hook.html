@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burnham Insurance Hook Card</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1080px;
+            height: 1080px;
+            background: linear-gradient(135deg, #1a2330 0%, #263340 100%);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 200px;
+            height: 80px;
+        }
+
+        .logo img, .logo svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .divider {
+            width: 100%;
+            height: 2px;
+            background: #bc9728;
+        }
+
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            text-align: center;
+            padding: 40px 20px 120px 20px;
+        }
+
+        h1 {
+            font-family: 'EB Garamond', Georgia, serif;
+            font-size: 72px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hook-label {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hook-badge {
+            display: inline-block;
+            background-color: #bc9728;
+            color: #1a2330;
+            font-family: 'Inter', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 14px 36px;
+            border-radius: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="top-section">
+            <div class="logo">
+                <img src="file:///home/beanz/brand-assets/logo-horizontal.svg" alt="Burnham & Sons Logo" />
+            </div>
+            <div class="divider"></div>
+        </div>
+
+        <div class="content">
+            <h1><!--TITLE--></h1>
+        </div>
+
+        <div class="hook-label">
+            <span class="hook-badge">Free Quote &mdash; burnhamandsons.com</span>
+        </div>
+    </div>
+</body>
+</html>
