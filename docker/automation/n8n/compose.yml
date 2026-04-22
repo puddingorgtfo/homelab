@@ -11,6 +11,7 @@ services:
       - ${N8N_DATA_DIR}:/home/node/.n8n
       - /var/run/docker.sock:/var/run/docker.sock
       - /mnt/nas/n8n:/mnt/nas/n8n
+      - /mnt/nas/obsidian/vaults/research:/vault/research
     environment:
       - N8N_PORT=${N8N_PORT}
       - N8N_HOST=${N8N_HOST}

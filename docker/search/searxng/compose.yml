@@ -13,6 +13,14 @@ services:
       INSTANCE_NAME: ${SEARXNG_INSTANCE_NAME:-"SearXNG"}
     volumes:
       - searxng-data:/etc/searxng
+    networks:
+      - default
+      - npm_default
 
 volumes:
   searxng-data:
+
+networks:
+  default:
+  npm_default:
+    external: true

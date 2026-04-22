@@ -17,6 +17,7 @@ services:
               capabilities: [gpu]
     networks:
       - ollama_internal
+      - npm_default
     restart: unless-stopped
 
   open-webui:
@@ -39,5 +40,6 @@ services:
 networks:
   ollama_internal:
     driver: bridge
+    name: ollama_ollama_internal
   npm_default:
     external: true

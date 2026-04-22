@@ -1,0 +1,23 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    volumes:
+      - /mnt/nas/qdrant/storage:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
+      QDRANT__LOG_LEVEL: INFO
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    networks:
+      - npm_default
+      - ollama_internal
+
+networks:
+  npm_default:
+    external: true
+  ollama_internal:
+    external: true
+    name: ollama_ollama_internal
